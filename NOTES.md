@@ -1,9 +1,12 @@
 # TO DO for Monday 2.24.25
-Ahriel - UI
+Ahriel / Jamie / Gyanu / Sulav - UI
 Will - Dataset & model
-Gyanu & Sulav - test UI and review after initial version is done
+Gyanu & Sulav / Jamie / Ahriel - test UI and review after initial version is done
 
 Document screenshots of errors / challenges w/ short info on how you fixed it and send to Jamie -- I will compile into document
+
+## Tkinter tutorial for managing different pages:
+[link](https://www.geeksforgeeks.org/tkinter-application-to-switch-between-different-page-frames/)
 
 
 ### notes from 2.19.25:
@@ -17,6 +20,6 @@ the uml diagram should have all the system libraries represented and linked toge
 
 **make it simple**
 
-make it as a standalone application instead of web app and make it simple
+mame it as a standalone application instead of web app and make it simple
 
 first cut of program by friday or monday - code, record problems you faced, and those of us doing documentation we need to know what the programmers faced and how they solved it. later on this will be used in the AGILE modeling and scrum reviews.
