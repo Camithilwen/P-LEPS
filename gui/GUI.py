@@ -17,7 +17,7 @@ class mainApp(tk.Tk):
         container.grid_rowconfigure(0, weight = 1)
         container.grid_columnconfigure(0, weight = 1)
 
-        #Initialize a frames variable to an empty array
+        #Initialize frames variable to an empty array
         self.frames = {}
 
         #Define a tuple of unique page classes and iteratively configure each page
@@ -39,7 +39,7 @@ class main_page(tk.Frame):
     def __init__(self, parent, controller):
         '''Initializes the main page'''
 
-        #Inihttps://www.geeksforgeeks.org/tkinter-application-to-switch-between-different-page-frames/tialization call to the Tk frame
+        #Initialization call to the Tk frame
         tk.Frame.__init__(self, parent)
 
         #Frame labeling
@@ -48,10 +48,23 @@ class main_page(tk.Frame):
         #Configure frame grid
         label.grid(row = 0, column = 4, padx = 10, pady = 10)
 
-    '''Configure buttons'''
+        '''Configure buttons'''
+
+        #Configure load button
+        self.load_button = ttk.Button(self, text="Load CSV File", command=self.open_command)
+        self.load_button.grid(column=1, row=1, padx=10, pady=10)
+
+        #Configure manual entry button
+        self.manual_button = ttk.Button(self, text="Manual data entry",
+                                command=lambda: controller.show_frame(manual_entry))
+        self.manual_button.grid(column=2, row=1, padx = 10, pady = 10)
+
+        # Submit button
+        self.submit_button = ttk.Button(self, text="Check Eligibility")
+        self.submit_button.grid(row=3, column= 1, padx = 10, pady = 10)
 
     #Configure button commands
-    def open_command():
+    def open_command(self):
         '''Generates tkinter file dialog and loads a selected .CSV file
         to a pandas data frame'''
 
@@ -63,21 +76,26 @@ class main_page(tk.Frame):
             print("Error:", ex)
             messagebox.showinfo(message=f"Error: {ex}")
 
-    #Configure load button
-    load_button = ttk.Button(text="Load CSV File", command=open_command)
-    load_button.grid(column=1, row=1, padx=10, pady=10)
-
-    #Configure manual entry button
-    manual_button = ttk.Button(text="Manual data entry",
-                               command = lambda : controller.show_frame(manual_entry))
-    manual_button.grid(column=2, row=1, padx = 10, pady = 10)
-
-    # Submit button
-    submit_button = ttk.Button(text="Check Eligibility")
-    submit_button.grid(row=3, column= 1, padx = 10, pady = 10)
 
 class manual_entry(tk.Frame):
     '''Class definition for manual data entry page and associated fields and buttons'''
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        
+        label = ttk.Label(self, text="Manual Entry Page")
+        label.grid(row=0, column=0, padx=10, pady=10)
+        
+        '''Configure buttons'''
+
+        #Configure back button
+        back_button = ttk.Button(
+            self,
+            text="Back to Main",
+            command=lambda: controller.show_frame(main_page)
+        )
+        back_button.grid(row=1, column=0, padx=10, pady=10)
+
     '''TO DO:
     - Define entry fields for desired values
     - Define a save button
@@ -85,7 +103,6 @@ class manual_entry(tk.Frame):
     - Define a text display to confirm data has saved
     - Define a button to return to main screen
     '''
-
 
 
 if __name__ == '__main__':
