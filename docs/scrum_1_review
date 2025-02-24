@@ -1,0 +1,24 @@
+
+# notes from Salem
+- Could be a problem when uploading CSV files - need a way to alert the user how the CSV file should look / be formatted - needs to be specified in the design
+- CSV file requirements will be explained during scrum review and implemented into next version
+
+---
+
+# for next version
+- specification document, design, model, and then need an object to manipulate the dataset into a proper format
+- Add area for plot / result display
+- csv data parsing should dynamically identify data columns and place them in a standard order and / or the model should be able to identify which data points are which on its own even if data is not in the same order each time.
+- **Expand Input Fields**: Adding additional fields for other relevant data points, such as income or credit score will improve the application’s functionality.
+- **Implement Eligibility Logic**: The actual loan eligibility evaluation logic needs to be added to the ‘check_eligibility’ method.
+- **Styling**: Different designs and styling could be explored to improve the visual appeal of the GUI.sti
+
+---
+
+# TODOs:
+## Deadline: Simply display slight progress by Wednesday. No new presentation until significant progress has been made.
+- Will: continue working on model development and push updates as needed
+- Ahriel: manual entry page -- add fields for data collection and a button to parse fields into a dataframe
+- Gyanu / Sulav: experiment with the UI aesthetics to see what looks nice (if you have time) - start working on pre-processing for data - get CSV import / manual entry to dataframe working and organize data into a standard order in the frame.
+- Jamie: display plot / result display + code review / update the specification document / compile issue documentation for this round (send bugs/ issues and how you fixed them w/ screenshots and I will compile)
+
