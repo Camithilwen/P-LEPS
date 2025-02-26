@@ -221,13 +221,6 @@ class manual_entry(tk.Frame):
 
         messagebox.showinfo("Success", "Your data has been saved!")
 
-    '''TO DO:
-    - Define entry fields for desired values
-    - Link fields to save button and collect values into a pandas dataframe
-    - Define a text display to confirm data has saved
-    - Define a button to return to main screen
-    '''
-
 
 if __name__ == '__main__':
 
