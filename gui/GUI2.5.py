@@ -118,8 +118,9 @@ class manual_entry(tk.Frame):
         
         ttk.Label(self, text="Married").grid(row=4, column=0, sticky="w")
         self.marital_status_var = tk.StringVar()
-        ttk.Entry(self, textvariable=self.marital_status_var).grid(row=4, column=1)
-        
+        self.marital_status_dropdown = ttk.Combobox(self, textvariable=self.marital_status_var, values=["Yes", "No"], state="readonly")
+        self.marital_status_dropdown.grid(row=4, column=1)
+
         # ttk.Label(self, text="Email Address").grid(row=5, column=0, sticky="w")
         # self.email_var = tk.StringVar()
         # ttk.Entry(self, textvariable=self.email_var).grid(row=5, column=1)
