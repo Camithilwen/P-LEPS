@@ -139,6 +139,9 @@ class manual_entry(tk.Frame):
 
         messagebox.showinfo("Success", "Your data has been saved!")
 
+        #Debug print (TEMPORARY)
+        print(manual_entry_data.head())
+
 
 if __name__ == '__main__':
     # Run the GUI

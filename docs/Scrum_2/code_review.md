@@ -6,7 +6,7 @@
 ### Impressions
 - Smooth screen transitions
 - Data entry fields accept and preserve text
-- CSV import accepts file, but did not see anything in the debug output
+- CSV import accepts file and imports data without issue.
 - Excellent self explanatory code
 
 
