@@ -60,9 +60,13 @@ class main_page(tk.Frame):
                                        command=lambda: controller.show_frame(manual_entry))
         self.manual_button.grid(row=1, column=1, padx=10, pady=10)
 
-        self.submit_button = tk.Button(self, text="Check Eligibility", bg="#27408B", fg="black",
+        self.submit_button = tk.Button(self, text="Check Eligibility", command=self.check_eligible, bg="#27408B", fg="black",
                                       font=("Arial", 12), relief="flat")
         self.submit_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+
+        #Initialize data variables
+        self.input_data = pd.DataFrame
+        self.manual_entry_data = pd.DataFrame
 
     # Configure button commands
     def open_command(self):
@@ -74,11 +78,30 @@ class main_page(tk.Frame):
             if not path:  # If user cancels file selection
                 return
             input_data = pd.read_csv(path)
+            self.input_data = input_data
             messagebox.showinfo("Success", "CSV file loaded successfully!")
             print(input_data.head())
 
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
+
+    def check_eligible(self):
+        '''Provides applicant data to predictive model and triggers result display.
+        TO DO:
+         - Implement connection to model'''
+
+        if not self.input_data.empty:
+            pass #Send imported csv data to model
+        elif not self.manual_entry_data.empty:
+            pass #Send manually entered data to model
+        self.display_result()
+
+    def display_result(self):
+        '''Displays model output and confidence score.
+        TO DO:
+         - Connect the main_page class to receive feedback from the model.
+         - Connect feedback to this display.'''
+        messagebox.showinfo("Test", "Testing result output.")
 
 
 class manual_entry(tk.Frame):
@@ -128,6 +151,7 @@ class manual_entry(tk.Frame):
         }
         # Convert to DataFrame
         manual_entry_data = pd.DataFrame([data])
+        main_page.manual_entry_data = manual_entry_data
 
         # Combine with any existing CSV data if necessary
         try:
