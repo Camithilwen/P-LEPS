@@ -12,7 +12,7 @@ class mainApp(ctk.CTk):
 
         super().__init__(*args, **kwargs)
         self.title("Loan Eligibility Application")
-        self.geometry("600x400")
+        self.geometry("380x600")
 
         # Configure the main container
         container = ctk.CTkFrame(self, fg_color="transparent")
@@ -81,7 +81,7 @@ class main_page(ctk.CTkFrame):
             data.columns = data.columns.str.strip()
 
             required_columns = ["Gender", "Married", "Dependents", "Education",
-                                "Self Employed", "Applicant Income", "CoApplicant Income", "Loan Amount", "Loan Amount Term", "Credit History", "Property Area", "Loan Status" ]
+                                "Self_Employed", "ApplicantIncome", "CoapplicantIncome", "LoanAmount", "Loan_Amount_Term", "Credit_History", "Property_Area", "Loan Status" ]
 
             missing_cols = [col for col in required_columns if col not in data.columns]
 
@@ -94,7 +94,7 @@ class main_page(ctk.CTkFrame):
             self.input_data = data[required_columns]
 
             #Convert numeric columns to integers
-            self.input_data = self.input_data.astype({"Applicant Income": "int", "CoApplicant Income": "int", "Loan Amount": "int"})
+            self.input_data = self.input_data.astype({"ApplicantIncome": "int", "Coapplicant Income": "int", "LoanAmount": "int"})
 
             messagebox.showinfo("Success", "CSV file loaded successfully!")
 
@@ -126,56 +126,7 @@ class manual_entry(ctk.CTkFrame):
 
     def __init__(self, parent, controller):
         '''Initializes the page'''
-        ttk.Label(self, text="Gender").grid(row=1, column=0, sticky="w")
-        self.name_var = ctk.StringVar()
-        ttk.Entry(self, textvariable=self.name_var).grid(row=1, column=1)
-       
-        ttk.Label(self, text="Married").grid(row=2, column=0, sticky="w")
-        self.marital_status_var = ctk.StringVar()
-        self.marital_status_dropdown = ttk.Combobox(self, textvariable=self.marital_status_var, values=["Yes", "No"], state="readonly")
-        self.marital_status_dropdown.grid(row=2, column=1)
-        
-        ttk.Label(self, text="Dependents").grid(row=3, column=0, sticky="w")
-        self.name_var = ctk.StringVar()
-        ttk.Entry(self, textvariable=self.name_var).grid(row=3, column=1)
-        
-        ttk.Label(self, text="Education").grid(row=4, column=0, sticky="w")
-        self.name_var = ctk.StringVar()
-        ttk.Entry(self, textvariable=self.name_var).grid(row=4, column=1)
-        
-        ttk.Label(self, text="Self Employeed").grid(row=5, column=0, sticky="w")
-        self.marital_status_var = ctk.StringVar()
-        self.marital_status_dropdown = ttk.Combobox(self, textvariable=self.marital_status_var, values=["Yes", "No"], state="readonly")
-        self.marital_status_dropdown.grid(row=5, column=1)
-        
-        ttk.Label(self, text="Applicant Income ").grid(row=6, column=0, sticky="w")
-        self.name_var = ctk.StringVar()
-        ttk.Entry(self, textvariable=self.name_var).grid(row=6, column=1)  
-        
-        ttk.Label(self, text="CoApplicant Income ").grid(row=7, column=0, sticky="w")
-        self.name_var = ctk.StringVar()
-        ttk.Entry(self, textvariable=self.name_var).grid(row=7, column=1)  
-        
-        ttk.Label(self, text="Loan Amount").grid(row=8, column=0, sticky="w")
-        self.loan_amount_var = ctk.StringVar()
-        ttk.Entry(self, textvariable=self.loan_amount_var).grid(row=8, column=1)
-        
-        ttk.Label(self, text="Loan Amount Term").grid(row=9, column=0, sticky="w")
-        self.term_var = ctk.StringVar()
-        ttk.Entry(self, textvariable=self.term_var).grid(row=9, column=1)
-        
-        ttk.Label(self, text="Credit History").grid(row=10, column=0, sticky="w")
-        self.name_var = ctk.StringVar()
-        ttk.Entry(self, textvariable=self.name_var).grid(row=10, column=1)  
-        
-        ttk.Label(self, text="Property Area").grid(row=11, column=0, sticky="w")
-        self.name_var = ctk.StringVar()
-        ttk.Entry(self, textvariable=self.name_var).grid(row=11, column=1)
-        
-        ttk.Label(self, text="Loan Status").grid(row=12, column=0, sticky="w")
-        self.name_var = ctk.StringVar()
-        ttk.Entry(self, textvariable=self.name_var).grid(row=12, column=1)
-        
+
         
         #Frame initialization call
         super().__init__(parent, fg_color="transparent")
@@ -189,18 +140,31 @@ class manual_entry(ctk.CTkFrame):
         #Define entry fields
         self.entries = {}
         fields = [
-            ("Gender", "text"),
+            ("Gender", "gender"),
             ("Married", "option"),
+            ("Dependents", "number"),
+            ("Education", "education"),
+            ("Self Employed", "option" ),
             ("Applicant Income", "number"),
-            ("Loan Amount", "number")
+            ("Co-applicant Income", "number"),
+            ("Loan Amount", "number"),
+            ("Loan Term", "number"),
+            ("Credit History", "number"),
+            ("Property Area Type", "area")
         ]
 
         for row, (label_text, field_type) in enumerate(fields, 1):
             ctk.CTkLabel(self, text=label_text).grid(row=row, column=0, padx=10, pady=5, sticky="w")
             var = ctk.StringVar()
 
-            if field_type == "option":
+            if field_type == "gender":
+                entry = ctk.CTkOptionMenu(self, variable=var, values=["X", "Female", "Male"])
+            elif field_type == "option":
                 entry = ctk.CTkOptionMenu(self, variable=var, values=["Yes", "No"])
+            elif field_type == "education":
+                entry = ctk.CTkOptionMenu(self, variable=var, values=["Graduate", "Not Graduate"])
+            elif field_type == "area":
+                entry = ctk.CTkOptionMenu(self, variable=var, values=["Urban", "Semiurban", "Rural"])
             else:
                 entry = ctk.CTkEntry(self, textvariable=var)
 
@@ -210,9 +174,9 @@ class manual_entry(ctk.CTkFrame):
         #Define buttons
         ctk.CTkButton(self, text="Back to Main",
                      command=lambda: controller.show_frame(main_page)
-                     ).grid(row=5, column=0, padx=10, pady=20)
+                     ).grid(row=12, column=0, padx=10, pady=20)
         ctk.CTkButton(self, text="Submit Entry",
-                     command=self.save_entry).grid(row=5, column=1, padx=10, pady=20)
+                     command=self.save_entry).grid(row=12, column=1, padx=10, pady=20)
 
     def save_entry(self):
         '''Collects user input and saves it into pandas DataFrame'''
@@ -220,8 +184,15 @@ class manual_entry(ctk.CTkFrame):
         data = {
             "Gender": self.entries["Gender"].get(),
             "Married": self.entries["Married"].get(),
-            "Applicant Income": self.entries["Applicant Income"].get(),
-            "Loan Amount": self.entries["Loan Amount"].get(),
+            "Dependents": self.entries["Dependents"].get(),
+            "Education": self.entries["Education"].get(),
+            "Self_Employed": self.entries["Self Employed"].get(),
+            "ApplicantIncome": self.entries["Applicant Income"].get(),
+            "CoapplicantIncome": self.entries["Co-applicant Income"].get(),
+            "LoanAmount": self.entries["Loan Amount"].get(),
+            "Loan_Amount_Term": self.entries["Loan Term"].get(),
+            "Credit_History": self.entries["Credit History"].get(),
+            "Property_Area": self.entries["Property Area Type"].get()
         }
 
         #Convert input to DataFrame
