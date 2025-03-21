@@ -8,10 +8,15 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 # basic data preprocessing, can be better oop and put into a differnt file if needed
-data = pd.read_csv("huggingface_data.csv")
+data = pd.read_csv("model/dataset.csv")
+data = data.drop(columns=["Loan_ID"])  # drop the Loan_ID column, not needed for training
+data = pd.get_dummies(data, drop_first=True) # one-hot encode categorical variables, drop_first=True to avoid dummy variable trap
 
-X = data.drop(columns=["Loan_Status"])  # gets all columns except Loan_Status, these are the features
-y = data["Loan_Status"].map({"Y": 1, "N": 0})  # gets just the loan status, convert labels to 1 & 0 (might be yes and no, might already be 1 & 0)
+print(data.head())
+print(data.shape)   
+
+y = data["Loan_Status_Y"].astype(int) 
+X = data.drop(columns=["Loan_Status_Y"])
 
 scaler = StandardScaler() # standardize the data, mean = 0, std = 1, might use MinMaxScaler() instead
 # scaler = MinMaxScaler() # scale the data to a range, might use StandardScaler() instead
@@ -53,11 +58,26 @@ history = model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=
 
 # evalutate
 test_loss, test_accuracy = model.evaluate(X_test, y_test)
-print(f"Test Accuracy: {test_accuracy:.2f}")
+print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
 
-# notes
+model.save("lenn1.0.h5")
+
+# notes 1.0
 # need data set to work with
 # testing flexibility of scrum approach with the delay of the model implementation
 # basic implementation of a model
 # haven't begun to train or test
 # haven't begun to perfect hyper parameters
+
+# notes 1.1
+# struggled importing the data set and preprocessing
+# used get_dummies to one-hot encode categorical variables
+# renamed some of the dataframe columns, had to change the refrence in the y variable
+# model is trained and tested
+# accuracy is 65%
+# need to test with more data, more epochs, and/or more hyperparameters
+# the *fun* part is just beginning, tweaking the model to get better results. trial and error.
+# save model to h5 file
+# import h5 file for predictions
+# we will need to create a new file for predictions for predictions and data preprocessing, 
+# as the model data set and all incoming data points will need to be preprocessed the same way
