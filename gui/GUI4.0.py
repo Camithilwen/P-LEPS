@@ -112,12 +112,28 @@ class main_page(ctk.CTkFrame):
             pass  #Send manually entered data to model
         self.display_result()
 
-    def display_result(self):
+    def display_result(self,result):
         '''Displays model output and confidence score.
         To DO:
          - Connect the main_page class to receive feedback from the model.
          - Connect feedback to this display.'''
-
+         
+        # Values 
+        Eligible = result.get("Eligible", False) # boolean as an answer Yes/No
+        Confidence = result.get("Confidence", 0.0) # the confidence score 
+        reasons = result.get("Reasons", []) #why you cant get the loan
+        
+        #format of confidence score 
+        confidence_precentage = f"{Confidence * 100: .2f}%"
+        
+        #What the message will show
+        
+        if Eligible:
+            message = f"Loan Approved!!!\nConfidence:{confidence_precentage}"
+        else:
+            message = f"Loan Denied...\nConfidence:{confidence_precentage}\nreasons:{reasons}"
+        
+        #Display message 
         messagebox.showinfo("Test", "Testing result output.")
 
 
