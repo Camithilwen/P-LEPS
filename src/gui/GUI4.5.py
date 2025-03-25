@@ -1,8 +1,7 @@
 import customtkinter as ctk
 from tkinter import filedialog, messagebox, ttk
 import pandas as pd
-from preprocessing import check_eligible 
-
+from preprocessing.preprocessing import check_eligible
 
 # Configure CustomTkinter appearance
 ctk.set_appearance_mode("dark")
