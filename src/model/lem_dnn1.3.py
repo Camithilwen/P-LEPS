@@ -4,14 +4,16 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping    
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import matplotlib.pyplot as plt
 
 # basic data preprocessing, can be better oop and put into a differnt file if needed
-data = pd.read_csv("model/dataset.csv")
+data = pd.read_csv("src/model/dataset.csv")
 data = data.drop(columns=["Loan_ID"])  # drop the Loan_ID column, not needed for training
 data = pd.get_dummies(data, drop_first=True) # one-hot encode categorical variables, drop_first=True to avoid dummy variable trap
 data = data.dropna() # drop rows with missing values, can be better to fill with mean or median
@@ -51,18 +53,18 @@ print(f"Random Forest Test Accuracy: {rf_accuracy * 100:.2f}%")
 # deep neural network
 model = Sequential([
     # input layer
-    Dense(256, activation='relu', input_shape=(X_train.shape[1],)), # 256 is the number of neurons, can be changed
+    Dense(1024, activation='relu', input_shape=(X_train.shape[1],)), # 256 is the number of neurons, can be changed
     # hidden layers
     BatchNormalization(), # normalizes the input layer
-    Dropout(0.6), # dropout rate, can be changed
+    Dropout(0.8), # dropout rate, can be changed
 
     Dense(128, activation='relu', input_shape=(X_train.shape[1],)),
     BatchNormalization(),
-    Dropout(0.4),
+    Dropout(0.5),
 
     Dense(64, activation='relu'),
     BatchNormalization(),
-    Dropout(0.3),
+    Dropout(0.4),
 
     Dense(32, activation='relu'),
     BatchNormalization(),
@@ -72,21 +74,52 @@ model = Sequential([
 ])
 
 # compile
-model.compile(optimizer=Adam(learning_rate=0.01), # learning rate is .001, can be changed
+model.compile(optimizer=Adam(learning_rate=0.001), # learning rate is .001, can be changed
               loss='binary_crossentropy',
               metrics=['accuracy'])
 
 # train
 model.summary()
-history = model.fit(X_train, y_train, epochs=50, batch_size=32, # hyperparameters, epochs = 50, batch_size = 32, can be changed
-                    validation_data=(X_test, y_test), 
+
+early_stop = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+
+history = model.fit(X_train, y_train, epochs=500, batch_size=16, # hyperparameters, epochs = 50, batch_size = 32, can be changed
+                    validation_data=(X_test, y_test), callbacks=[early_stop], 
                     verbose=2) # hyperparameters, epochs = 50, batch_size = 32, can be changed
 
 # evalutate
 test_loss, test_accuracy = model.evaluate(X_test, y_test)
 print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
 
-model.save("lenn1.1.keras")
+model.save("src/model/lenn1.2.keras")
+
+# plot accuracy and loss
+train_acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
+train_loss = history.history['loss']
+val_loss = history.history['val_loss']
+epochs = range(1, len(train_acc) + 1)
+
+# plot accuracy
+plt.figure(figsize=(12, 5))
+plt.subplot(1, 2, 1)
+plt.plot(epochs, train_acc, 'b-', label='Training Accuracy')
+plt.plot(epochs, val_acc, 'r-', label='Validation Accuracy')
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.title('Training & Validation Accuracy')
+plt.legend()
+
+# plot loss
+plt.subplot(1, 2, 2)
+plt.plot(epochs, train_loss, 'b-', label='Training Loss')
+plt.plot(epochs, val_loss, 'r-', label='Validation Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.title('Training & Validation Loss')
+plt.legend()
+
+plt.show()
 
 # notes 1.0
 # need data set to work with
@@ -115,3 +148,10 @@ model.save("lenn1.1.keras")
 # SMOTE worked, but class weights didn't
 # val acccuracy jumps to 81.13% with loss still dropping
 # Trying to use random forest to see if it can do better and for feature importance
+
+# notes 1.3
+# generating model 1.2 for better predictions
+# added more layers and neurons
+# tweaked dropout
+# adding a graph showing accuracy and loss
+# implemented early stopping, very useful
