@@ -9,7 +9,7 @@ def predict_loan_status(input_data):
     processed_data, valid_indices = pp(input_data)
 
     #Load model
-    model = load_model("src/model/lenn1.2.keras")
+    model = load_model("src/model/lenn1.3.keras")
 
     #Prediction
     predictions = model.predict(processed_data)

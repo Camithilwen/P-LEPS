@@ -9,11 +9,14 @@ def preprocess_input(data):
     data = data.drop(columns=["Loan_ID"], errors="ignore")
 
     # Load training columns and scaler (saved after training)
-    training_columns = pd.read_csv("training_columns.csv")["columns"].tolist()
+    training_columns = pd.read_csv("src/preprocessing/training_columns.csv")["columns"].tolist()
     scaler = load("scaler.joblib")  # Saved from training
 
     # One-hot encode (ensure same as training)
     data = pd.get_dummies(data, drop_first=True)
+
+    print(data.columns)
+    
 
     # Align columns with training data (add missing, drop extras)
     for col in training_columns:

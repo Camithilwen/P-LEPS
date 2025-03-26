@@ -1,2 +1,2 @@
-Gender,Married,Dependents,Education,Self_Employed,ApplicantIncome,CoapplicantIncome,LoanAmount,Loan_Amount_Term,Credit_History,Property_Area
+Gender_Male,Married_Yes,Education_Graduate,Self_Employed_Yes,ApplicantIncome,CoapplicantIncome,LoanAmount,Loan_Amount_Term,Credit_History,Property_Area
 X,Yes,,Graduate,Yes,3333333,3333333,3332,3,800,Urban

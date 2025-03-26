@@ -13,13 +13,30 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 import matplotlib.pyplot as plt
 from joblib import dump
 
+def encode_property_area(data):
+    """Encodes Property_Area_Semiurban and Property_Area_Urban into a single column."""
+    data["Property_Area"] = 0  # Default to Rural (0)
+    data.loc[data["Property_Area_Semiurban"] == 1, "Property_Area"] = 1  # Semiurban (1)
+    data.loc[data["Property_Area_Urban"] == 1, "Property_Area"] = 2  # Urban (2)
+
+    # Drop the original one-hot columns
+    data.drop(columns=["Property_Area_Semiurban", "Property_Area_Urban"], errors="ignore", inplace=True)
+    
+    return data
+
 # basic data preprocessing, can be better oop and put into a differnt file if needed
 data = pd.read_csv("src/model/dataset.csv")
 data = data.drop(columns=["Loan_ID"])  # drop the Loan_ID column, not needed for training
+
 data = pd.get_dummies(data, drop_first=True) # one-hot encode categorical variables, drop_first=True to avoid dummy variable trap
+
+data = encode_property_area(data)
+
 data = data.dropna() # drop rows with missing values, can be better to fill with mean or median
-print(data.columns)
+#print(data.columns)
+data.rename(columns={"Education_Not Graduate": "Education_Graduate"}, inplace=True)
 data = data.drop(["Dependents_1","Dependents_2","Dependents_3+"], axis=1)
+pd.Series(data.columns).to_csv("src/preprocessing/training_columns.csv", index=False, header=False)
 
 #print(data.head())
 #print(data.shape)   
@@ -102,7 +119,7 @@ history = model.fit(X_train_resampled, y_train_resampled, epochs=500, batch_size
 test_loss, test_accuracy = model.evaluate(X_test, y_test)
 print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
 
-#model.save("src/model/lenn1.2.keras")
+model.save("src/model/lenn1.3.keras")
 
 # plot accuracy and loss
 train_acc = history.history['accuracy']
@@ -166,3 +183,6 @@ plt.show()
 # tweaked dropout
 # adding a graph showing accuracy and loss
 # implemented early stopping, very useful
+
+# notes 1.4
+# data preprocessing on area so now it is 0 = rural, 1 = semiurban, 2 = urban
