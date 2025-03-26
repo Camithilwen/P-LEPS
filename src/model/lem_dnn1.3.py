@@ -11,6 +11,7 @@ from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import matplotlib.pyplot as plt
+from joblib import dump
 
 # basic data preprocessing, can be better oop and put into a differnt file if needed
 data = pd.read_csv("src/model/dataset.csv")
@@ -25,18 +26,20 @@ data = data.drop(["Dependents_1","Dependents_2","Dependents_3+"], axis=1)
 
 y = data["Loan_Status_Y"].astype(int) 
 X = data.drop(columns=["Loan_Status_Y"]) # drop the target variable
+pd.Series(X.columns).to_csv("src/preprocessing/training_columns.csv", index=False, header=False)
 
 scaler = StandardScaler() # standardize the data, mean = 0, std = 1, might use MinMaxScaler() instead
 # scaler = MinMaxScaler() # scale the data to a range, might use StandardScaler() instead
 X = scaler.fit_transform(X)
 
+from joblib import dump
+dump(scaler, "src/preprocessing/scaler.joblib")
+
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) # 80% training, 20% testing can be changed
 
 #print(y_train.value_counts())
 #print(y_test.value_counts())
-pd.Series(X.columns).to_csv("training_columns.csv", index=False)
-from joblib import dump
-dump(scaler, "scaler.joblib")
+
 # SMOTE to fix data imbalance
 smote = SMOTE(sampling_strategy='auto', random_state=42)
 X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
@@ -57,7 +60,7 @@ print(f"Random Forest Test Accuracy: {rf_accuracy * 100:.2f}%")
 # deep neural network
 model = Sequential([
     # input layer
-    Dense(512, activation='relu', input_shape=(X_train.shape[1],)), # 256 is the number of neurons, can be changed
+    Dense(1024, activation='relu', input_shape=(X_train.shape[1],)), # 256 is the number of neurons, can be changed
     # hidden layers
     BatchNormalization(), # normalizes the input layer
     Dropout(0.6), # dropout rate, can be changed
@@ -91,7 +94,7 @@ model.summary()
 
 early_stop = EarlyStopping(monitor='val_loss', patience=200, restore_best_weights=True)
 
-history = model.fit(X_train_resampled, y_train_resampled, epochs=500, batch_size=40, # hyperparameters, epochs = 50, batch_size = 32, can be changed
+history = model.fit(X_train_resampled, y_train_resampled, epochs=500, batch_size=16, # hyperparameters, epochs = 50, batch_size = 32, can be changed
                     validation_data=(X_test, y_test), callbacks=[early_stop], 
                     verbose=2) # hyperparameters, epochs = 50, batch_size = 32, can be changed
 
@@ -99,7 +102,7 @@ history = model.fit(X_train_resampled, y_train_resampled, epochs=500, batch_size
 test_loss, test_accuracy = model.evaluate(X_test, y_test)
 print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
 
-model.save("src/model/lenn1.2.keras")
+#model.save("src/model/lenn1.2.keras")
 
 # plot accuracy and loss
 train_acc = history.history['accuracy']
