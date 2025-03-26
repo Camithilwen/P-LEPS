@@ -1,19 +1,24 @@
 from tensorflow.keras.models import load_model
 import pandas as pd
-import preprocessing as pp
+from ..preprocessing.preprocessing import preprocess_input as pp
 
-model = load_model("model/lem_dnn1.1.h5")
 
-# preprocess...
-# pp.check_eligible(gui_data.csv)
-# pp.prepprocess(gui_data.csv)
+def predict_loan_status(input_data):
+    '''Predict application outcome using preprocessed data and model file'''
+    #Preprocess data
+    processed_data, valid_indices = pp(input_data)
 
-new_data = pd.DataFrame({}) # replace with actual data from preprocessing.py
-predictions = model.predict(new_data)
-predictions_binary = (predictions > 0.5).astype(int)
+    #Load model
+    model = load_model("src/model/lenn1.2.keras")
 
-new_data["Predicted_Loan_Status"] = predictions_binary
+    #Prediction
+    predictions = model.predict(processed_data)
+    predictions_binary = (predictions > 0.5).astype(int).flatten()
 
-new_data.to_csv("predictions.csv", index=False)
+    #Format results
+    results = pd.DataFrame({
+        "Predicted_Status": predictions_binary,
+        "Eligibility": ["Eligible" if p ==1 else "Not Eligible" for p in predictions_binary]
+    }, index=valid_indices)
 
-print("Predictions saved to predictions.csv")
+    return results

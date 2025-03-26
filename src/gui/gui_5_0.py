@@ -2,6 +2,7 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox, ttk
 import pandas as pd
 from ..preprocessing.preprocessing import check_eligible
+from ..prediction.prediction import predict_loan_status
 
 # Configure CustomTkinter appearance
 ctk.set_appearance_mode("dark")
@@ -107,24 +108,28 @@ class main_page(ctk.CTkFrame):
 
     def check_eligible(self):
         '''Pass data to preprocessing.py and display results'''
+        try:
 
-        if not self.input_data.empty:
-            print("\n Sending CSV Data to check_eligible()...")
-            processed_data = check_eligible(self.input_data)  # Process CSV data
-        elif not self.manual_entry_data.empty:
-            print("\n Sending Manual Entry Data to check_eligible()...")
-            processed_data = check_eligible(self.manual_entry_data)  # Process manual data
-        else:
-            messagebox.showerror("Error", "No data available to check eligibility!")
-            print("No data available to process.")
-            return
+            if not self.input_data.empty:
+                print("\n Sending CSV Data to check_eligible()...")
+                input_data = self.input_data.copy()  # Process CSV data
+            elif not self.manual_entry_data.empty:
+                print("\n Sending Manual Entry Data to check_eligible()...")
+                input_data = self.manual_entry_data.copy()  # Process manual data
+            else:
+                messagebox.showerror("Error", "No data available to check eligibility!")
+                print("No data available to process.")
+                return
 
-        # Display results
-        result = str(processed_data[["Eligibility"]])
-        self.display_result(result)
-       # print("\n *** Final Eligibility Output: *** \n", result)
-       # messagebox.showinfo("***Eligibility Result***", result)
+            #Get predictions
+            results = predict_loan_status(input_data)
 
+            # Display results
+            result_text = results["Eligibility"].to_string(index=false)
+            self.display_result(result_text)
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Prediction failed: {str(e)}")
 
     def display_result(self, eligibility_result):
         '''Displays model output and confidence score.'''

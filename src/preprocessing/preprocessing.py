@@ -1,30 +1,30 @@
 import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from joblib import load
 
-def check_eligible(data):
-    """ Processes loan application data and checks eligibility. """
+def preprocess_input(data):
+    """Replicate preprocessing from model training using saved artifacts."""
+    # Drop Loan_ID if present
+    data = data.drop(columns=["Loan_ID"], errors="ignore")
 
-    print("\n ***Received Data in check_eligible()***")
-    print(data.head())  # Print first few rows to confirm data
+    # Load training columns and scaler (saved after training)
+    training_columns = pd.read_csv("training_columns.csv")["columns"].tolist()
+    scaler = load("scaler.joblib")  # Saved from training
 
-    required_columns = ["Gender", "Married", "Dependents", "Education",
-                        "Self_Employed", "Applicantincome", "Coapplicantincome",
-                        "Loanamount", "Loan_Amount_Term", "Credit_History", "Property_Area"]
+    # One-hot encode (ensure same as training)
+    data = pd.get_dummies(data, drop_first=True)
 
-    missing_cols = [col for col in required_columns if col not in data.columns]
-    if missing_cols:
-        print(f"***Missing columns in input data:*** {', '.join(missing_cols)}")
-        raise ValueError(f"Missing columns in input data: {', '.join(missing_cols)}")
+    # Align columns with training data (add missing, drop extras)
+    for col in training_columns:
+        if col not in data.columns:
+            data[col] = 0
+    data = data[training_columns]
 
-        #Example Logic. Will be replaced by the model we are making I suppose?
-    def eligibility(x):
-        if x == 1:
-            return "Eligible"
-        else:
-            return "Not Eligible"
+    # Drop rows with NA (mimic training's dropna())
+    data = data.dropna()
 
-    data["Eligibility"] = data["Credit_History"].apply(eligibility)
+    # Scale using the same scaler
+    scaled_data = scaler.transform(data)
 
-    print("\n *** Processed Data with Eligibility:***")
-    print(data[["Eligibility"]].head())  # Show eligibility results
-
-    return data
+    return scaled_data, data.index  # Return valid indices

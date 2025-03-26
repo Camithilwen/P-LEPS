@@ -34,7 +34,9 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 #print(y_train.value_counts())
 #print(y_test.value_counts())
-
+pd.Series(X.columns).to_csv("training_columns.csv", index=False)
+from joblib import dump
+dump(scaler, "scaler.joblib")
 # SMOTE to fix data imbalance
 smote = SMOTE(sampling_strategy='auto', random_state=42)
 X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
