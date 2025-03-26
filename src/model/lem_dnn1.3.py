@@ -17,12 +17,14 @@ data = pd.read_csv("src/model/dataset.csv")
 data = data.drop(columns=["Loan_ID"])  # drop the Loan_ID column, not needed for training
 data = pd.get_dummies(data, drop_first=True) # one-hot encode categorical variables, drop_first=True to avoid dummy variable trap
 data = data.dropna() # drop rows with missing values, can be better to fill with mean or median
+print(data.columns)
+data = data.drop(["Dependents_1","Dependents_2","Dependents_3+"], axis=1)
 
 #print(data.head())
 #print(data.shape)   
 
 y = data["Loan_Status_Y"].astype(int) 
-X = data.drop(columns=["Loan_Status_Y"])
+X = data.drop(columns=["Loan_Status_Y"]) # drop the target variable
 
 scaler = StandardScaler() # standardize the data, mean = 0, std = 1, might use MinMaxScaler() instead
 # scaler = MinMaxScaler() # scale the data to a range, might use StandardScaler() instead
@@ -53,14 +55,18 @@ print(f"Random Forest Test Accuracy: {rf_accuracy * 100:.2f}%")
 # deep neural network
 model = Sequential([
     # input layer
-    Dense(1024, activation='relu', input_shape=(X_train.shape[1],)), # 256 is the number of neurons, can be changed
+    Dense(512, activation='relu', input_shape=(X_train.shape[1],)), # 256 is the number of neurons, can be changed
     # hidden layers
     BatchNormalization(), # normalizes the input layer
-    Dropout(0.8), # dropout rate, can be changed
+    Dropout(0.6), # dropout rate, can be changed
+
+    Dense(256, activation='relu', input_shape=(X_train.shape[1],)),
+    BatchNormalization(),
+    Dropout(0.4),
 
     Dense(128, activation='relu', input_shape=(X_train.shape[1],)),
     BatchNormalization(),
-    Dropout(0.5),
+    Dropout(0.3),
 
     Dense(64, activation='relu'),
     BatchNormalization(),
@@ -74,16 +80,16 @@ model = Sequential([
 ])
 
 # compile
-model.compile(optimizer=Adam(learning_rate=0.001), # learning rate is .001, can be changed
+model.compile(optimizer=Adam(learning_rate=0.01), # learning rate is .001, can be changed
               loss='binary_crossentropy',
               metrics=['accuracy'])
 
 # train
 model.summary()
 
-early_stop = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+early_stop = EarlyStopping(monitor='val_loss', patience=200, restore_best_weights=True)
 
-history = model.fit(X_train, y_train, epochs=500, batch_size=16, # hyperparameters, epochs = 50, batch_size = 32, can be changed
+history = model.fit(X_train_resampled, y_train_resampled, epochs=500, batch_size=40, # hyperparameters, epochs = 50, batch_size = 32, can be changed
                     validation_data=(X_test, y_test), callbacks=[early_stop], 
                     verbose=2) # hyperparameters, epochs = 50, batch_size = 32, can be changed
 
