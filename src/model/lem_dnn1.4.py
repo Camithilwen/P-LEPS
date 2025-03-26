@@ -34,7 +34,7 @@ data = encode_property_area(data)
 
 data = data.dropna() # drop rows with missing values, can be better to fill with mean or median
 #print(data.columns)
-data.rename(columns={"Education_Not Graduate": "Education_Graduate"}, inplace=True)
+data.rename(columns={"Education_Not Graduate": "Education_Graduate", "ApplicantIncome": "Applicant_Income", "CoapplicantIncome":"Coapplicant_Income", "LoanAmount" : "Loan_Amount"}, inplace=True)
 data = data.drop(["Dependents_1","Dependents_2","Dependents_3+"], axis=1)
 pd.Series(data.columns).to_csv("src/preprocessing/training_columns.csv", index=False, header=False)
 
@@ -119,7 +119,7 @@ history = model.fit(X_train_resampled, y_train_resampled, epochs=500, batch_size
 test_loss, test_accuracy = model.evaluate(X_test, y_test)
 print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
 
-model.save("src/model/lenn1.3.keras")
+#model.save("src/model/lenn1.3.keras")
 
 # plot accuracy and loss
 train_acc = history.history['accuracy']

@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from tkinter import filedialog, messagebox, ttk
 import pandas as pd
+from ..preprocessing.preprocessing import preprocess_input
 from ..prediction.prediction import predict_loan_status
 
 # Configure CustomTkinter appearance
@@ -86,19 +87,24 @@ class main_page(ctk.CTkFrame):
 
             data.columns = data.columns.str.strip().str.replace(" ", "_").str.title()
 
-            required_columns = ["Gender", "Married", "Dependents", "Education",
-                                "Self_Employed", "Applicantincome", "Coapplicantincome", "Loanamount", "Loan_Amount_Term", "Credit_History", "Property_Area"]
+            required_columns = pd.read_csv("src/preprocessing/training_columns.csv", header=None).squeeze("columns").tolist()
             
+
             print("\n \nModified CSV Columns:\n", data.columns.tolist())
             missing_cols = [col for col in required_columns if col not in data.columns]
 
             #Check for missing columns
             if missing_cols:
+                print(required_columns)
+                print(data.columns)
                 messagebox.showerror("Error", f"Missing columns in CSV: {', '.join(missing_cols)}")
                 return
 
             #Select only relevant columns
             self.input_data = data[required_columns]
+
+            self.data = data
+            print(self.data)
 
             messagebox.showinfo("Success", "CSV file loaded successfully!")
 
@@ -109,9 +115,9 @@ class main_page(ctk.CTkFrame):
         '''Pass data to preprocessing.py and display results'''
         try:
 
-            if not self.input_data.empty:
+            if not self.data.empty:
                 print("\n Sending CSV Data to check_eligible()...")
-                input_data = self.input_data.copy()  # Process CSV data
+                #input_data = self.input_data.copy()  # Process CSV data
             elif not self.manual_entry_data.empty:
                 print("\n Sending Manual Entry Data to check_eligible()...")
                 input_data = self.manual_entry_data.copy()  # Process manual data
@@ -121,14 +127,14 @@ class main_page(ctk.CTkFrame):
                 return
 
             #Get predictions
-            results = predict_loan_status(input_data)
+            results = predict_loan_status(self.input_data)
 
             # Display results
             result_text = results["Eligibility"].to_string(index=false)
             self.display_result(result_text)
 
         except Exception as e:
-            messagebox.showerror("Error", f"Prediction failed: {str(e)}")
+            messagebox.showerror("Error", f"Prediction failed: {e}")
 
     def display_result(self, eligibility_result):
         '''Displays model output and confidence score.'''
