@@ -1,7 +1,6 @@
 import customtkinter as ctk
 from tkinter import filedialog, messagebox, ttk
 import pandas as pd
-from ..preprocessing.preprocessing import check_eligible
 from ..prediction.prediction import predict_loan_status
 
 # Configure CustomTkinter appearance
