@@ -117,7 +117,7 @@ class main_page(ctk.CTkFrame):
 
             if not self.data.empty:
                 print("\n Sending CSV Data to check_eligible()...")
-                #input_data = self.input_data.copy()  # Process CSV data
+                input_data = self.input_data.copy()  # Process CSV data
             elif not self.manual_entry_data.empty:
                 print("\n Sending Manual Entry Data to check_eligible()...")
                 input_data = self.manual_entry_data.copy()  # Process manual data
@@ -126,15 +126,27 @@ class main_page(ctk.CTkFrame):
                 print("No data available to process.")
                 return
 
+            #Final data check
+            if input_data.empty:
+                messagebox.showerror("Error: gui_5_0 line 131", "No valid data to process after cleaning.")
+                return
+
             #Get predictions
-            results = predict_loan_status(self.input_data)
+            results = predict_loan_status(input_data)
+
+            #Check if results are empty
+            if results.empty:
+                messagebox.showerror("Error: gui_5_0 line 139", "No valid predictions. Check input data.")
+                return
 
             # Display results
-            result_text = results["Eligibility"].to_string(index=false)
+            result_text = results["Eligibility"].to_string(index=False)
             self.display_result(result_text)
 
+        except ValueError as ve:
+            messagebox.showerror("Error: gui_5_0 line 147", f"Validation Error: {ve}")
         except Exception as e:
-            messagebox.showerror("Error", f"Prediction failed: {e}")
+            messagebox.showerror("Error: gui_5_0 line 149", f"Prediction failed: {e}")
 
     def display_result(self, eligibility_result):
         '''Displays model output and confidence score.'''
@@ -163,14 +175,13 @@ class manual_entry(ctk.CTkFrame):
         fields = [
             ("Gender", "gender"),
             ("Married", "option"),
-            ("Dependents", "number"),
             ("Education", "education"),
             ("Self Employed", "option" ),
             ("Applicant Income", "number"),
             ("Co-applicant Income", "number"),
             ("Loan Amount", "number"),
             ("Loan Term", "number"),
-            ("Credit History", "number"),
+            ("Credit History", "credit"),
             ("Property Area Type", "area")
         ]
 
@@ -184,6 +195,8 @@ class manual_entry(ctk.CTkFrame):
                 entry = ctk.CTkOptionMenu(self, variable=var, values=["Yes", "No"])
             elif field_type == "education":
                 entry = ctk.CTkOptionMenu(self, variable=var, values=["Graduate", "Not Graduate"])
+            elif field_type == "credit":
+                entry = ctk.CTkOptionMenu(self, variable=var, values=["Bad", "Good"])
             elif field_type == "area":
                 entry = ctk.CTkOptionMenu(self, variable=var, values=["Urban", "Semiurban", "Rural"])
             else:
@@ -192,33 +205,89 @@ class manual_entry(ctk.CTkFrame):
             entry.grid(row=row, column=1, padx=10, pady=5, sticky="ew")
             self.entries[label_text] = var
 
+        #Validate numeric fields
+        self.numeric_fields = [
+            "Applicant Income",
+            "Co-applicant Income",
+            "Loan Amount",
+            "Loan Term",
+        ]
+
+        #Track validation state
+        self.valid_inputs = {field: False for field in self.numeric_fields}
+
+        #Attach validations
+        for field in self.numeric_fields:
+            self.entries[field].trace_add("write", lambda name, index, mode, f=field: self.validate_numeric(f))
+
         #Define buttons
-        ctk.CTkButton(self, text="Back to Main",
-                     command=lambda: controller.show_frame(main_page)
-                     ).grid(row=12, column=0, padx=10, pady=20)
-        ctk.CTkButton(self, text="Submit Entry",
-                     command=self.save_entry).grid(row=12, column=1, padx=10, pady=20)
+        self.back_button = ctk.CTkButton(self, text="Back to Main",
+                     command=lambda: controller.show_frame(main_page))
+        self.back_button.grid(row=12, column=0, padx=10, pady=20)
+
+        self.submit_button = ctk.CTkButton(self, text="Submit Entry", command=self.save_entry,
+                                           state="disabled")
+        self.submit_button.grid(row=12, column=1, padx=10, pady=20)
+
+    def validate_numeric(self, field):
+        '''Ensures numeric fields contain valid inputs'''
+        value = self.entries[field].get().strip()
+
+        #Validate non-empty fields
+        valid = False
+        if value:
+            try:
+                float(value)
+                valid = True
+            except ValueError:
+               valid = False
+        if field == "Loan Term":
+            try:
+                term = float(value)
+                valid = (term >= 12) and (term <= 360) #Validate values expressed in months
+            except:
+                valid = False
+
+        self.valid_inputs[field] = valid
+        all_valid = all(self.valid_inputs.values())
+
+        #Debug outputs
+        print(f"Field '{field}': {value} | Valid: {valid}")
+        print(f"All valid: {all_valid}")
+
+        self.submit_button.configure(state="normal" if all_valid else "disabled")
 
     def save_entry(self):
         '''Collects user input and saves it into pandas DataFrame'''
 
         data = {
-            "Gender": self.entries["Gender"].get(),
-            "Married": self.entries["Married"].get(),
-            "Dependents": self.entries["Dependents"].get(),
-            "Education": self.entries["Education"].get(),
-            "Self_Employed": self.entries["Self Employed"].get(),
-            "ApplicantIncome": self.entries["Applicant Income"].get(),
-            "CoapplicantIncome": self.entries["Co-applicant Income"].get(),
-            "LoanAmount": self.entries["Loan Amount"].get(),
-            "Loan_Amount_Term": self.entries["Loan Term"].get(),
-            "Credit_History": self.entries["Credit History"].get(),
-            "Property_Area": self.entries["Property Area Type"].get()
+        # Numeric fields (convert strings to numbers)
+        "Applicant_Income": float(self.entries["Applicant Income"].get()),
+        "Coapplicant_Income": float(self.entries["Co-applicant Income"].get()),
+        "Loan_Amount": float(self.entries["Loan Amount"].get()),
+        "Loan_Amount_Term": float(self.entries["Loan Term"].get()),
+
+        # Binary-encoded categoricals
+        "Gender_Male": 1 if self.entries["Gender"].get() == "Male" else 0,
+        "Married_Yes": 1 if self.entries["Married"].get() == "Yes" else 0,
+        "Education_Graduate": 1 if self.entries["Education"].get() == "Graduate" else 0,
+        "Credit_History": 1 if self.entries["Credit History"].get() == "Good" else 0,
+        "Self_Employed_Yes": 1 if self.entries["Self Employed"].get() == "Yes" else 0,
+
+        # Property Area encoding (0=Rural, 1=Semiurban, 2=Urban)
+        "Property_Area": {
+            "Rural": 0,
+            "Semiurban": 1,
+            "Urban": 2
+        }[self.entries["Property Area Type"].get()]
         }
 
         #Convert input to DataFrame
-        manual_entry_data = pd.DataFrame([data])
-        self.manual_entry_data = manual_entry_data
+        self.manual_entry_data = pd.DataFrame([data])
+
+        #Match entry column order to training columns
+        training_cols = pd.read_csv("src/preprocessing/training_columns.csv", header=None)[0].tolist()
+        self.manual_entry_data = self.manual_entry_data[training_cols]
 
         #Ask user to save as new or append to existing
         append = messagebox.askyesno("Save Options", "Append to existing CSV file?\n(Click 'No' to save as a new file)")
@@ -229,7 +298,7 @@ class manual_entry(ctk.CTkFrame):
                 return
             try:
                 existing_data = pd.read_csv(path)
-                combined_data = pd.concat([existing_data, manual_entry_data], ignore_index=True)
+                combined_data = pd.concat([existing_data, self.manual_entry_data], ignore_index=True)
                 combined_data.to_csv(path, index=False) #overwrite selected file
                 messagebox.showinfo("Success", "Data appended to existing file!")
             except Exception as e:
@@ -242,7 +311,7 @@ class manual_entry(ctk.CTkFrame):
             if not path: #User cancellation
                 return
             try:
-                manual_entry_data.to_csv(path, index=False)
+                self.manual_entry_data.to_csv(path, index=False)
                 messagebox.showinfo("Success", "Data saved to a new file!")
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to save:\n{e}")

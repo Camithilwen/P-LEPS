@@ -1,4 +1,4 @@
-from tensorflow.keras.models import load_model
+from keras.api.models import load_model
 import pandas as pd
 from ..preprocessing.preprocessing import preprocess_input as pp
 
