@@ -5,6 +5,7 @@ shell.nix
 devenv.local.nix
 devenv.nix
 devenv.yaml
+devenv.lock
 .envrc
 
 # direnv
