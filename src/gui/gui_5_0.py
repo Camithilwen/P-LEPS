@@ -122,12 +122,6 @@ class main_page(ctk.CTkFrame):
         else:
            messagebox.showwarning("No Data", "Load CSV or enter manual data first")
 
-    def display_result(self, eligibility_result):
-        '''Displays model output and confidence score.'''
-
-        ResultDialog(self.controller, eligibility_result)
-               
-
 class manual_entry(ctk.CTkFrame):
     '''Class definition for manual data entry page and associated fields and buttons'''
 
@@ -290,19 +284,10 @@ class manual_entry(ctk.CTkFrame):
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to save:\n{e}")
 
-        #Combine with existing CSV data if required
-        #try:
-            #existing_data = pd.read_csv("loan_entries.csv")
-            #combined_data = pd.concat([existing_data, manual_entry_data], ignore_index=True)
-            #combined_data.to_csv("loan_entries.csv", index=False) #Save combined data
-        #except FileNotFoundError:
-            #manual_entry_data.to_csv("loan_entries.csv", index=False) #Save new data if no existing file
-
-        #messagebox.showinfo("Success", "Your data has been saved!")
 
 class ResultDialog(ctk.CTkToplevel):
     """Custom resizable dialog for displaying eligibility results."""
-    def __init__(self, parent, result_text):
+    def __init__(self, parent, results_df):
         super().__init__(parent)
         self.title("Eligibility Result")
         self.geometry("600x400")  # Set default size (width x height)
@@ -314,7 +299,10 @@ class ResultDialog(ctk.CTkToplevel):
         # Add scrollable text box
         self.textbox = ctk.CTkTextbox(self, wrap="none")
         self.textbox.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-        self.textbox.insert("1.0", result_text)  # Insert eligibility results
+        self.textbox.insert("1.0",
+            "\n".join([f"Case {i+1}: {row['Eligibility']} "
+                      f"({row['Confidence']}) - {row['Reasons']}"
+                      for i, row in results_df.iterrows()]))
         self.textbox.configure(state="disabled")  # Make it read-only
 
         # Close button

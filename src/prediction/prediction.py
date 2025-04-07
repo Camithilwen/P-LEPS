@@ -14,11 +14,19 @@ def predict_loan_status(input_data):
     #Prediction
     predictions = model.predict(processed_data)
     predictions_binary = (predictions > 0.5).astype(int).flatten()
+    confidence_scores = predictions.flatten() * 100
 
-    #Format results
+    # Add failure reasoning
+    failure_reasons = []
+    for idx, row in input_data.iterrows():
+        reasons = []
+        if row["Applicant_Income"] < 3000: reasons.append("Low Income")
+        if row["Credit_History"] == 0: reasons.append("Poor Credit History")
+        failure_reasons.append("; ".join(reasons) if reasons else "N/A")
+
     results = pd.DataFrame({
-        "Predicted_Status": predictions_binary,
-        "Eligibility": ["Eligible" if p ==1 else "Not Eligible" for p in predictions_binary]
+        "Eligibility": ["Eligible" if p > 0.5 else "Not Eligible" for p in predictions],
+        "Confidence": [f"{score:.1f}%" for score in confidence_scores],
+        "Reasons": failure_reasons
     }, index=valid_indices)
-
     return results
