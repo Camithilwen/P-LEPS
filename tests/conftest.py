@@ -1,11 +1,33 @@
 import pytest
 import pandas as pd
 import numpy as np
-from unittest.mock import Mock
+from unittest.mock import Mock, mock_open, patch
 from keras.models import load_model
 from faker import Faker
+from sklearn.preprocessing import StandardScaler
 
 fake = Faker()
+
+# Add mock preprocessing artifacts
+@pytest.fixture(autouse=True)
+def mock_preprocessing_files():
+    with patch("pandas.read_csv") as mock_csv:
+        # Mock training columns to match test data structure
+        mock_csv.side_effect = lambda path, **kw: pd.DataFrame({0: [
+            'Applicant_Income', 'Coapplicant_Income', 'Loan_Amount',
+            'Loan_Amount_Term', 'Credit_History', 'Gender_Male',
+            'Married_Yes', 'Education_Graduate', 'Self_Employed_Yes',
+            'Property_Area'
+        ]}) if "training_columns" in path else pd.read_csv(path, **kw)
+
+    with patch("joblib.load") as mock_load:
+        # Mock scaler with identity transformation
+        mock_scaler = StandardScaler()
+        mock_scaler.mean_ = np.zeros(10)
+        mock_scaler.scale_ = np.ones(10)
+        mock_load.return_value = mock_scaler
+        yield
+
 
 @pytest.fixture
 def sample_csv_data():
@@ -60,10 +82,9 @@ def large_csv_data():
         'Property_Area': np.random.randint(0, 3, size)
     })
 
-    # Add edge cases
-    data.iloc[0] = [0, 0, 0, 0, -1, 2, 2, 2, 2, 4]  # Invalid values
-    data.iloc[1:10] = np.nan  # Missing values
-    data.iloc[10:20, 0] = 1e6  # Extreme incomes
+    data.iloc[0] = [0, 0, 0, 0, -1, 2, 2, 2, 2, 4]
+    data.iloc[1:10] = np.nan
+    data.iloc[10:20, 0] = 1e6
     return data
 
 @pytest.fixture
@@ -83,7 +104,6 @@ def large_raw_data():
         'Property_Area': np.random.choice(['Urban', 'Semiurban', 'Rural'], size)
     })
 
-    # Add realistic text variations
     data['Gender'] = data['Gender'].apply(lambda x: fake.random_element(
         elements=('Male', 'Female', 'M', 'F', 'male', 'female')))
     return data

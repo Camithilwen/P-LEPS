@@ -24,8 +24,9 @@ def test_preprocessing(sample_raw_data):
 def test_missing_columns():
     invalid_data = pd.DataFrame({'Loan_ID': ['LP001'], 'Wrong_Column': [1]})
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as excinfo:
         preprocess_input(invalid_data)
+    assert "Missing required columns" in str(excinfo.value)
 
 def test_batch_preprocessing(large_csv_data):
     processed, _ = preprocess_input(large_csv_data)
@@ -33,5 +34,6 @@ def test_batch_preprocessing(large_csv_data):
     assert np.isfinite(processed).all()
 
 def test_mixed_type_handling(mixed_type_data):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as excinfo:
         preprocess_input(mixed_type_data)
+    assert "Invalid numeric value" in str(excinfo.value)

@@ -111,48 +111,22 @@ class main_page(ctk.CTkFrame):
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred while loading the file: {e}")
 
+   # In main_page class
     def check_eligible(self):
-        '''Pass data to preprocessing.py and display results'''
-        try:
-
-            if not self.data.empty:
-                print("\n Sending CSV Data to check_eligible()...")
-                input_data = self.input_data.copy()  # Process CSV data
-            elif not self.manual_entry_data.empty:
-                print("\n Sending Manual Entry Data to check_eligible()...")
-                input_data = self.manual_entry_data.copy()  # Process manual data
-            else:
-                messagebox.showerror("Error", "No data available to check eligibility!")
-                print("No data available to process.")
-                return
-
-            #Final data check
-            if input_data.empty:
-                messagebox.showerror("Error: gui_5_0 line 131", "No valid data to process after cleaning.")
-                return
-
-            #Get predictions
-            results = predict_loan_status(input_data)
-
-            #Check if results are empty
-            if results.empty:
-                messagebox.showerror("Error: gui_5_0 line 139", "No valid predictions. Check input data.")
-                return
-
-            # Display results
-            result_text = results["Eligibility"].to_string(index=False)
-            self.display_result(result_text)
-
-        except ValueError as ve:
-            messagebox.showerror("Error: gui_5_0 line 147", f"Validation Error: {ve}")
-        except Exception as e:
-            messagebox.showerror("Error: gui_5_0 line 149", f"Prediction failed: {e}")
+        if not self.input_data.empty:
+           prediction = predict_loan_status(self.input_data)  # Should use the CSV data
+           ResultDialog(self.master, prediction)
+        elif not self.manual_entry_data.empty:
+           prediction = predict_loan_status(self.manual_entry_data)
+           ResultDialog(self.master, prediction)
+        else:
+           messagebox.showwarning("No Data", "Load CSV or enter manual data first")
 
     def display_result(self, eligibility_result):
         '''Displays model output and confidence score.'''
 
         ResultDialog(self.controller, eligibility_result)
-
+               
 
 class manual_entry(ctk.CTkFrame):
     '''Class definition for manual data entry page and associated fields and buttons'''

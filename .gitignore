@@ -1,16 +1,17 @@
 .venv
 shell.nix
+
 # Devenv
 .devenv*
 devenv.local.nix
 devenv.nix
 devenv.yaml
 devenv.lock
+
+#environment
 .envrc
-
-# direnv
 .direnv
-
+.bashrc
 # pre-commit
 .pre-commit-config.yaml
 
