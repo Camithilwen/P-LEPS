@@ -4,8 +4,24 @@ import numpy as np
 from unittest.mock import patch, Mock
 from src.preprocessing.preprocessing import preprocess_input
 
+@pytest.fixture
+def sample_raw_data():
+    """Fixture providing data in the format after GUI manual entry preprocessing."""
+    return pd.DataFrame({
+        'Applicant_Income': [5000],
+        'Coapplicant_Income': [2000],
+        'Loan_Amount': [300],
+        'Loan_Amount_Term': [360],
+        'Credit_History': [1],
+        'Gender_Male': [1],
+        'Married_Yes': [0],
+        'Education_Graduate': [1],
+        'Self_Employed_Yes': [0],
+        'Property_Area': [1]  # Encoded as 0=Rural, 1=Semiurban, 2=Urban
+    })
+
 def test_preprocessing(sample_raw_data):
-    """Test standard preprocessing workflow"""
+    """Test standard preprocessing workflow with GUI-formatted data."""
     with patch('pandas.read_csv') as mock_cols, \
          patch('joblib.load') as mock_scaler:
 

@@ -5,6 +5,8 @@ from joblib import load
 
 def preprocess_input(data, strict_validation=True):
     """Replicate preprocessing from model training using saved artifacts."""
+    if not isinstance(data, pd.DataFrame):
+        raise ValueError("Input must be a pandas DataFrame.")
     # Create copy to prevent modifying original data
     data = data.copy()
 
@@ -28,7 +30,7 @@ def preprocess_input(data, strict_validation=True):
             conversion_errors.append(col)
 
     if conversion_errors:
-        raise ValueError(f"Non-numeric values found in columns: {conversion_errors}")
+        raise ValueError(f"Invalid numeric value in columns:{conversion_errors}")
 
     #strict validation handling - strict flag raises error for missing columns
     if strict_validation:

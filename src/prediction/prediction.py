@@ -2,7 +2,6 @@ from keras.api.models import load_model
 import pandas as pd
 from ..preprocessing.preprocessing import preprocess_input as pp
 
-
 def predict_loan_status(input_data):
     '''Predict application outcome using preprocessed data and model file'''
     #Preprocess data
@@ -20,8 +19,9 @@ def predict_loan_status(input_data):
     failure_reasons = []
     for idx, row in input_data.iterrows():
         reasons = []
-        if row["Applicant_Income"] < 3000: reasons.append("Low Income")
+        if row["Applicant_Income"] < 3000 and row["Coapplicant_Income"] < 3000: reasons.append("Low Income")
         if row["Credit_History"] == 0: reasons.append("Poor Credit History")
+        if row["Applicant_Income"] < 6000 and row["Property_Area"] == 2: reasons.append("Income too low for area")
         failure_reasons.append("; ".join(reasons) if reasons else "N/A")
 
     results = pd.DataFrame({
