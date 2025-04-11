@@ -30,7 +30,7 @@ executables = [
         "src/gui/gui_5_0.py",
         base=base,
         target_name="LoanEligibilityChecker",
-        icon="assets/icon.ico" if sys.platform == "win32" else None
+        #icon="assets/icon.ico" if sys.platform == "win32" else None
     )
 ]
 
