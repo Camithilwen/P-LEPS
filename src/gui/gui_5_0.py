@@ -1,8 +1,15 @@
 import customtkinter as ctk
 from tkinter import filedialog, messagebox, ttk
 import pandas as pd
-from ..preprocessing.preprocessing import preprocess_input
-from ..prediction.prediction import predict_loan_status
+import os
+try:
+    # For frozen executable
+    from src.preprocessing.preprocessing import preprocess_input
+    from src.prediction.prediction import predict_loan_status
+except ImportError:
+    # For development environment
+    from preprocessing.preprocessing import preprocess_input
+    from prediction.prediction import predict_loan_status
 
 # Configure CustomTkinter appearance
 ctk.set_appearance_mode("dark")
@@ -86,9 +93,9 @@ class main_page(ctk.CTkFrame):
                 data.drop(columns=["Loan_ID"], inplace=True)
 
             data.columns = data.columns.str.strip().str.replace(" ", "_").str.title()
+            training_cols_path = os.path.join(os.path.dirname(__file__), '../preprocessing/training_columns.csv')
+            required_columns = pd.read_csv(training_cols_path, header=None).squeeze("columns").tolist()
 
-            required_columns = pd.read_csv("src/preprocessing/training_columns.csv", header=None).squeeze("columns").tolist()
-            
 
             print("\n \nModified CSV Columns:\n", data.columns.tolist())
             missing_cols = [col for col in required_columns if col not in data.columns]
@@ -255,7 +262,8 @@ class manual_entry(ctk.CTkFrame):
 
         #Match entry column order to training columns
         try:
-            training_cols = pd.read_csv("src/preprocessing/training_columns.csv", header=None)[0].tolist()
+            training_cols_path = os.path.join(os.path.dirname(__file__), '../preprocessing/training_columns.csv')
+            training_cols = pd.read_csv(training_cols_path, header=None)[0].tolist()
             self.manual_entry_data = self.manual_entry_data[training_cols]
 
             #Ask user to save as new or append to existing

@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from joblib import load
+import os
 
 def preprocess_input(data, strict_validation=True):
     """Replicate preprocessing from model training using saved artifacts."""
@@ -15,8 +16,8 @@ def preprocess_input(data, strict_validation=True):
 
     try:
         # Load training columns with test fallback
-        training_columns = pd.read_csv("src/preprocessing/training_columns.csv",
-                                     header=None).squeeze().tolist()
+        preprocessing_dir = os.path.join(os.path.dirname(__file__))
+        training_columns = pd.read_csv(os.path.join(preprocessing_dir, 'training_columns.csv'), header=None).squeeze().tolist()
 
     except FileNotFoundError:
         training_columns = data.columns.tolist()
@@ -69,7 +70,7 @@ def preprocess_input(data, strict_validation=True):
 
     # Load scaler with test fallback
     try:
-        scaler = load("src/preprocessing/scaler.joblib")
+        scaler = load(os.path.join(preprocessing_dir, 'scaler.joblib'))
     except FileNotFoundError:
         scaler = StandardScaler()
         scaler.fit(data)  # Dummy fit for testing
