@@ -21,7 +21,7 @@
         default = pkgs.mkShell {
           packages = with pkgs; [
             (python3.withPackages (py:
-                with py; [matplotlib pandas tkinter customtkinter scikit-learn tensorflow keras ]))
+                with py; [matplotlib pandas tkinter customtkinter scikit-learn tensorflow keras nuitka wheel setuptools cx-freeze]))
           ];
         };
 
