@@ -33,7 +33,7 @@ jobs:
     - name: Build executable
       run: |
         cd src
-        python setup.py build
+        python setup.py build --egg-base build
       shell: bash
 
     - name: Upload artifacts
