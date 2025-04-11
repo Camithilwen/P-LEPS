@@ -22,7 +22,7 @@ build_options = {
     "include_files": include_files,
     "excludes": ["tkinter"],
     "optimize": 1,
-    "path": sys.path + ["src", "src/gui", "src/preprocessing", "src/prediction"]
+    "path": sys.path + ["src", "src/gui", "src/preprocessing", "src/prediction", "src/model"]
 }
 
 executables = [
@@ -41,5 +41,10 @@ setup(
     options={"build_exe": build_options},
     executables=executables,
     package_dir={"": ""},
-    packages=["gui", "preprocessing", "prediction"]
+    packages=["gui", "preprocessing", "prediction"],
+    include_package_data = True,
+    package_data={
+        "": ["src/preprocessing/training_columns.csv", "src/preprocessing/scaler.joblib", "src/model/lenn1.3.keras"]
+
+}
 )
