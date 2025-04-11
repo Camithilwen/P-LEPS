@@ -40,7 +40,7 @@ setup(
     description="Loan Prediction Application",
     options={"build_exe": build_options},
     executables=executables,
-    package_dir={"": "src"},
+    package_dir={"": "./src"},
     packages=["gui", "preprocessing", "prediction"],
     include_package_data = True,
     package_data={
