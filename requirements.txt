@@ -6,3 +6,4 @@ tensorflow==2.15.1
 keras==2.15.0
 joblib==1.2.0
 cx-Freeze==6.15.4
+lief==0.12.2
