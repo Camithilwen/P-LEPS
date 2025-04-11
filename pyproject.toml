@@ -8,7 +8,6 @@ requires = [
     "numpy>=1.21.0",
     "scikit-learn>=1.0.0",
     "tensorflow>=2.12.0",
-    "keras>=2.12.0",
     "joblib>=1.2.0"
 ]
 build-backend = "setuptools.build_meta"
@@ -25,27 +24,28 @@ dependencies = [
     "numpy>=1.21.0",
     "scikit-learn>=1.0.0",
     "tensorflow>=2.12.0",
-    "keras>=2.12.0",
     "joblib>=1.2.0"
 ]
 
 [tool.cxfreeze]
+# Use options that work correctly on multiple platforms
 packages = [
     "os",
     "customtkinter",
     "pandas",
     "numpy",
     "sklearn",
-    "keras",
     "tensorflow",
+    "keras",
     "joblib",
-    "src.gui",
-    "src.preprocessing",
-    "src.prediction"
+    "src"
 ]
-excludes = ["tkinter"]
+includes = ["tensorflow.python.ops.array_ops"]
+excludes = ["tkinter.test"]
 optimize = 1
 include_msvcr = true
+zip_include_packages = ["*"]
+zip_exclude_packages = []
 
 [[tool.cxfreeze.executables]]
 script = "src/gui/gui_5_0.py"
@@ -53,20 +53,13 @@ target_name = "LoanEligibilityChecker"
 base = "Win32GUI"  # Only applies to Windows
 icon = ""
 
-[tool.cxfreeze.include-files]
-"src/preprocessing/training_columns.csv" = "lib/preprocessing/training_columns.csv"
-"src/preprocessing/scaler.joblib" = "lib/preprocessing/scaler.joblib"
-"src/model/lenn1.3.keras" = "lib/model/lenn1.3.keras"
+[tool.cxfreeze.options]
+# Additional options to include needed files
+include_files = [
+    ["src/preprocessing/training_columns.csv", "src/preprocessing/training_columns.csv"],
+    ["src/preprocessing/scaler.joblib", "src/preprocessing/scaler.joblib"],
+    ["src/model/lenn1.3.keras", "src/model/lenn1.3.keras"]
+]
 
 [project.scripts]
 loan-checker = "src.gui.gui_5_0:main"  # If you have a main() function
-
-[options]
-package_dir = {"." = "src"}
-packages = ["src.gui", "src.preprocessing", "src.prediction"]
-include_package_data = true
-zip_safe = false
-
-[options.package_data]
-"src.preprocessing" = ["training_columns.csv", "scaler.joblib"]
-"src.model" = ["lenn1.3.keras"]

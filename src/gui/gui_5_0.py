@@ -270,28 +270,34 @@ class manual_entry(ctk.CTkFrame):
             append = messagebox.askyesno("Save Options", "Append to existing CSV file?\n(Click 'No' to save as a new file)")
 
             if append:
+                # APPEND TO EXISTING FILE FLOW
                 path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
-                if not path: #User cancellation
+                if not path:  # User cancellation
                     return
+
                 try:
                     existing_data = pd.read_csv(path)
                     combined_data = pd.concat([existing_data, self.manual_entry_data], ignore_index=True)
-                    combined_data.to_csv(path, index=False) #overwrite selected file
+                    combined_data.to_csv(path, index=False)  # overwrite selected file
                     messagebox.showinfo("Success", "Data appended to existing file!")
                 except Exception as e:
                     messagebox.showerror("Error", f"Failed to append:\n{e}")
-                else:
-                    #Let user specify new file path
-                    path = filedialog.asksaveasfilename(
-                        defaultextension=".csv", filetypes=[("CSV files", "*.csv")], title="Save as new CSV"
-                    )
-                    if not path: #User cancellation
-                        return
-                    try:
-                        self.manual_entry_data.to_csv(path, index=False)
-                        messagebox.showinfo("Success", "Data saved to a new file!")
-                    except Exception as e:
-                        messagebox.showerror("Error", f"Failed to save:\n{e}")
+            else:
+                # SAVE AS NEW FILE FLOW
+                path = filedialog.asksaveasfilename(
+                    defaultextension=".csv",
+                    filetypes=[("CSV files", "*.csv")],
+                    title="Save as new CSV"
+                )
+                if not path:  # User cancellation
+                    return
+
+                try:
+                    self.manual_entry_data.to_csv(path, index=False)
+                    messagebox.showinfo("Success", "Data saved to a new file!")
+                except Exception as e:
+                    messagebox.showerror("Error", f"Failed to save:\n{e}")
+
         except FileNotFoundError:
             messagebox.showerror("Error", "Required training columns file not found")
             return

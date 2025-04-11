@@ -1,12 +1,6 @@
-from keras.api.models import load_model
+import tensorflow as tf
 import pandas as pd
 import os
-try:
-    # For frozen executable
-    from src.preprocessing.preprocessing import preprocess_input as pp
-except ImportError:
-    # For development environment
-    from preprocessing.preprocessing import preprocess_input as pp
 try:
     # For frozen executable
     from src.preprocessing.preprocessing import preprocess_input as pp
@@ -20,7 +14,7 @@ def predict_loan_status(input_data):
 
     #Load model
     model_path = os.path.join(os.path.dirname(__file__), '../model/lenn1.3.keras')
-    model = load_model(model_path)
+    model = tf.keras.models.load_model(model_path)
 
     #Prediction
     predictions = model.predict(processed_data)

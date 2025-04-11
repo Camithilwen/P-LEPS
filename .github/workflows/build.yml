@@ -34,7 +34,20 @@ jobs:
       run: |
         python -m build --wheel --no-isolation
         pip install dist/*.whl
-        cxfreeze src/gui/gui_5_0.py --target-dir dist/executable
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          python -m cx_Freeze src/gui/gui_5_0.py --target-dir dist/executable
+        else
+          python -m cx_Freeze src/gui/gui_5_0.py --target-dir dist/executable --target-name gui_5_0
+        fi
+      shell: bash
+
+    - name: Copy additional files
+      run: |
+        mkdir -p dist/executable/src/preprocessing
+        mkdir -p dist/executable/src/model
+        cp src/preprocessing/training_columns.csv dist/executable/src/preprocessing/
+        cp src/preprocessing/scaler.joblib dist/executable/src/preprocessing/
+        cp src/model/lenn1.3.keras dist/executable/src/model/
       shell: bash
 
     - name: Upload artifacts
