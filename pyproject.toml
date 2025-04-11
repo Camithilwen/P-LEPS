@@ -1,6 +1,16 @@
-
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = [
+    "setuptools>=42",
+    "wheel",
+    "cx-Freeze>=6.15.4",
+    "customtkinter>=5.2.0",
+    "pandas>=1.3.0",
+    "numpy>=1.21.0",
+    "scikit-learn>=1.0.0",
+    "tensorflow>=2.12.0",
+    "keras>=2.12.0",
+    "joblib>=1.2.0"
+]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -10,11 +20,53 @@ description = "Loan Eligibility Prediction Application"
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
-    "customtkinter >=5.2.0",
-    "pandas >=1.3.0",
-    "numpy >=1.21.0",
-    "scikit-learn >=1.0.0",
-    "tensorflow >=2.12.0",
-    "keras >=2.12.0",
-    "joblib >=1.2.0"
+    "customtkinter>=5.2.0",
+    "pandas>=1.3.0",
+    "numpy>=1.21.0",
+    "scikit-learn>=1.0.0",
+    "tensorflow>=2.12.0",
+    "keras>=2.12.0",
+    "joblib>=1.2.0"
 ]
+
+[tool.cxfreeze]
+packages = [
+    "os",
+    "customtkinter",
+    "pandas",
+    "numpy",
+    "sklearn",
+    "keras",
+    "tensorflow",
+    "joblib",
+    "src.gui",
+    "src.preprocessing",
+    "src.prediction"
+]
+excludes = ["tkinter"]
+optimize = 1
+include_msvcr = true
+
+[[tool.cxfreeze.executables]]
+script = "src/gui/gui_5_0.py"
+target_name = "LoanEligibilityChecker"
+base = "Win32GUI"  # Only applies to Windows
+icon = ""
+
+[tool.cxfreeze.include-files]
+"src/preprocessing/training_columns.csv" = "lib/preprocessing/training_columns.csv"
+"src/preprocessing/scaler.joblib" = "lib/preprocessing/scaler.joblib"
+"src/model/lenn1.3.keras" = "lib/model/lenn1.3.keras"
+
+[project.scripts]
+loan-checker = "src.gui.gui_5_0:main"  # If you have a main() function
+
+[options]
+package_dir = {"." = "src"}
+packages = ["src.gui", "src.preprocessing", "src.prediction"]
+include_package_data = true
+zip_safe = false
+
+[options.package_data]
+"src.preprocessing" = ["training_columns.csv", "scaler.joblib"]
+"src.model" = ["lenn1.3.keras"]

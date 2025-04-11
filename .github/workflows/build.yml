@@ -12,8 +12,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.9"]
-    
+        python-version: ["3.12"]
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -27,12 +27,16 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r src/requirements.txt
+        pip install -e .  # Install project in editable mode with all dependencies
         pip install cx-Freeze
+
+    - name: Verify structure
+      run: |
+        ls -R src
+        test -f src/gui/gui_5_0.py || exit 1
 
     - name: Build executable
       run: |
-        cd src
         python setup.py build
       shell: bash
 
@@ -40,17 +44,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: LoanChecker-${{ matrix.os }}
-        path: src/build/*
+        path: build/*
         if-no-files-found: error
-        
-    - name: Get version
-      id: get_version
-      run: echo "version=$(python setup.py --version)" >> $GITHUB_OUTPUT
-
-    - name: Create Release
-      if: github.ref == 'refs/heads/main'
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: v${{ steps.get_version.outputs.version }}
-        files: |
-          src/build/*/*
