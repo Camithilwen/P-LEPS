@@ -27,22 +27,18 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e .  # Install project in editable mode with all dependencies
-        pip install cx-Freeze
-
-    - name: Verify structure
-      run: |
-        ls -R src
-        test -f src/gui/gui_5_0.py || exit 1
+        pip install build
 
     - name: Build executable
       run: |
-        python setup.py build
+        python -m build --wheel --no-isolation
+        pip install dist/*.whl
+        cxfreeze src/gui/gui_5_0.py --target-dir dist/executable
       shell: bash
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: LoanChecker-${{ matrix.os }}
-        path: build/*
+        path: dist/executable/*
         if-no-files-found: error
