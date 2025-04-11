@@ -17,12 +17,12 @@ build_options = {
     "packages": [
         "os", "customtkinter", "pandas", "numpy",
         "sklearn", "keras", "tensorflow", "joblib",
-        "src.gui", "src.preprocessing", "src.prediction"
+        "gui", "preprocessing", "prediction"
     ],
     "include_files": include_files,
     "excludes": ["tkinter"],
     "optimize": 1,
-    "path": sys.path + ["src"]
+    "path": sys.path + ["src", "src/gui", "src/preprocessing", "src/prediction"]
 }
 
 executables = [
