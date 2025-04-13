@@ -66,5 +66,7 @@ include_files = [
     ["src/model/lenn1.3.keras", "src/model/lenn1.3.keras"]
 ]
 
+include_msvcr = true
+
 [project.scripts]
 loan-checker = "src.gui.gui_5_0:main"  # If the main() function exists

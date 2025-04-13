@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy
 import pandas as pd
 import os
 try:
