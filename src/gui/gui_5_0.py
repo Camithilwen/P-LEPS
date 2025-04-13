@@ -1,6 +1,6 @@
+import numpy as np
 import customtkinter as ctk
 from tkinter import filedialog, messagebox, ttk
-import numpy
 import pandas as pd
 import os
 try:

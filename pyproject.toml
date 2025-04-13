@@ -35,6 +35,11 @@ packages = [
     "pandas",
     "numpy",
     "numpy.core._multiarray_umath",
+    "numpy.core._multiarray_tests",
+    "numpy.core._operand_flag_tests",
+    "numpy.core._rational_tests",
+    "numpy.core._struct_ufunc_tests",
+    "numpy.core._umath_tests",
     "numpy.random",
     "sklearn",
     "tensorflow",
@@ -50,7 +55,12 @@ include_msvcr = true
 zip_include_packages = ["*"]
 zip_exclude_packages = []
 bin_path_includes = ["numpy"]
-bin_includes = ["numpy.core._multiarray_umath.cp310-win_amd64.pyd"]
+bin_includes = ["numpy.core._multiarray_umath.cp310-win_amd64.pyd",
+                "numpy.core._multiarray_tests.cp310-win_amd64.pyd",
+                "numpy.core._operand_flag_tests.cp310-win_amd64.pyd",
+                "numpy.core._rational_tests.cp310-win_amd64.pyd",
+                "numpy.core._struct_ufunc_tests.cp310-win_amd64.pyd",
+                "numpy.core._umath_tests.cp310-win_amd64.pyd"]
 
 [[tool.cxfreeze.executables]]
 script = "src/gui/gui_5_0.py"
