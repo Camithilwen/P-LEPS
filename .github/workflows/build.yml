@@ -112,3 +112,49 @@ jobs:
         name: LoanChecker-${{ matrix.os }}
         path: dist/executable/*
         if-no-files-found: error
+
+    - name: Test Executable (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd dist/executable
+        # Run with timeout and redirect output to file
+        timeout 10 .\LoanEligibilityChecker.exe > startup_log.txt 2>&1 || echo "Application started and terminated after timeout"
+        # Check for known error strings in the output
+        if Select-String -Path startup_log.txt -Pattern "ImportError|ModuleNotFoundError|DLL load failed"; then
+          echo "::error::Startup errors detected in the executable"
+          cat startup_log.txt
+          exit 1
+        fi
+      shell: pwsh
+      continue-on-error: true  # Optional: allows workflow to complete even if test fails
+
+    - name: Test Executable (macOS/Linux)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cd dist/executable
+        # Make executable if needed
+        chmod +x ./gui_5_0
+        # Run with timeout and capture output
+        timeout 10s ./gui_5_0 > startup_log.txt 2>&1 || echo "Application started and terminated after timeout"
+        # Check for errors
+        if grep -q "ImportError\|ModuleNotFoundError" startup_log.txt; then
+          echo "::error::Startup errors detected in the executable"
+          cat startup_log.txt
+          exit 1
+        fi
+      shell: bash
+      continue-on-error: true  # Optional: allows workflow to complete even if test fails
+
+    - name: Set up virtual display (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get install -y xvfb
+        export DISPLAY=:99
+        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+        sleep 3
+
+    - name: Upload Test Logs
+      uses: actions/upload-artifact@v4
+      with:
+        name: TestLogs-${{ matrix.os }}
+        path: dist/executable/startup_log.txt
