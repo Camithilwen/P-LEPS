@@ -1,4 +1,35 @@
-import numpy as np
+# Add this at the top of your src/gui/gui_5_0.py
+import os
+import sys
+
+# Set DLL search path to help find NumPy dependencies
+if hasattr(os, 'add_dll_directory'):  # Windows specific
+    # Get the directory where the executable is located
+    if getattr(sys, 'frozen', False):
+        application_path = os.path.dirname(sys.executable)
+        # Add the lib/numpy/core directory to the DLL search path
+        numpy_core_path = os.path.join(application_path, 'lib', 'numpy', 'core')
+        if os.path.exists(numpy_core_path):
+            os.add_dll_directory(numpy_core_path)
+        # Also add the main executable directory for MKL DLLs
+        os.add_dll_directory(application_path)
+
+# Now try to import NumPy
+try:
+    import numpy
+except ImportError as e:
+    import traceback
+    # Create an error log if numpy fails to import
+    with open('numpy_error.log', 'w') as f:
+        f.write(f"Error importing NumPy: {e}\n")
+        f.write(traceback.format_exc())
+        f.write("\nPython path: " + str(sys.path))
+        f.write("\nExecutable path: " + sys.executable)
+        if hasattr(os, 'environ'):
+            f.write("\nPATH: " + os.environ.get('PATH', 'N/A'))
+    # Re-raise to show the error
+    raise
+
 import customtkinter as ctk
 from tkinter import filedialog, messagebox, ttk
 import pandas as pd

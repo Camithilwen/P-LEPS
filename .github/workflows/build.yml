@@ -120,11 +120,11 @@ jobs:
         # Run with timeout and redirect output to file
         timeout 10 .\LoanEligibilityChecker.exe > startup_log.txt 2>&1 || echo "Application started and terminated after timeout"
         # Check for known error strings in the output
-        if Select-String -Path startup_log.txt -Pattern "ImportError|ModuleNotFoundError|DLL load failed"; then
+        if (Select-String -Path startup_log.txt -Pattern "ImportError|ModuleNotFoundError|DLL load failed") {
           echo "::error::Startup errors detected in the executable"
           cat startup_log.txt
           exit 1
-        fi
+        }
       shell: pwsh
       continue-on-error: true  # Optional: allows workflow to complete even if test fails
 
