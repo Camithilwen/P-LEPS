@@ -34,18 +34,33 @@ packages = [
     "customtkinter",
     "pandas",
     "numpy",
+    "numpy.core._multiarray_umath",
+    "numpy.core._multiarray_tests",
+    "numpy.core._operand_flag_tests",
+    "numpy.core._rational_tests",
+    "numpy.core._struct_ufunc_tests",
+    "numpy.core._umath_tests",
+    "numpy.random",
     "sklearn",
     "tensorflow",
     "keras",
     "joblib",
     "src"
 ]
-includes = ["tensorflow.python.ops.array_ops"]
+includes = ["tensorflow.python.ops.array_ops",
+            "numpy.core._multiarray_umath"]
 excludes = ["tkinter.test"]
 optimize = 1
 include_msvcr = true
 zip_include_packages = ["*"]
 zip_exclude_packages = []
+bin_path_includes = ["numpy"]
+bin_includes = ["numpy.core._multiarray_umath.cp310-win_amd64.pyd",
+                "numpy.core._multiarray_tests.cp310-win_amd64.pyd",
+                "numpy.core._operand_flag_tests.cp310-win_amd64.pyd",
+                "numpy.core._rational_tests.cp310-win_amd64.pyd",
+                "numpy.core._struct_ufunc_tests.cp310-win_amd64.pyd",
+                "numpy.core._umath_tests.cp310-win_amd64.pyd"]
 
 [[tool.cxfreeze.executables]]
 script = "src/gui/gui_5_0.py"
@@ -61,5 +76,7 @@ include_files = [
     ["src/model/lenn1.3.keras", "src/model/lenn1.3.keras"]
 ]
 
+include_msvcr = true
+
 [project.scripts]
-loan-checker = "src.gui.gui_5_0:main"  # If you have a main() function
+loan-checker = "src.gui.gui_5_0:main"  # If the main() function exists

@@ -30,15 +30,60 @@ jobs:
         pip install -r requirements.txt
         pip install build cx_freeze
 
+    - name: Print NumPy Info (Debug)
+      run: |
+        python -c "import numpy; print('NumPy version:', numpy.__version__)"
+        python -c "import numpy; print('NumPy location:', numpy.__file__)"
+        python -c "import os, numpy; np_core = os.path.join(os.path.dirname(numpy.__file__), 'core'); print('NumPy core exists:', os.path.exists(np_core)); print('NumPy core files:', os.listdir(np_core) if os.path.exists(np_core) else 'N/A')"
+      shell: bash
+
     - name: Build executable
       run: |
         python -m build --wheel --no-isolation
         pip install dist/*.whl
-        if [ "${{ matrix.os }}" == "windows-latest" ]; then
-          python -m cx_Freeze src/gui/gui_5_0.py --target-dir dist/executable
-        else
-          python -m cx_Freeze src/gui/gui_5_0.py --target-dir dist/executable --target-name gui_5_0
-        fi
+      shell: bash
+
+    - name: Build Windows Executable
+      if: matrix.os == 'windows-latest'
+      run: |
+        # Create build directory
+        mkdir -p build/exe.win-amd64-3.10/numpy/core
+
+        # Find NumPy core directory
+        python -c "import os, numpy; np_core = os.path.join(os.path.dirname(numpy.__file__), 'core'); print(f'NUMPY_CORE={np_core}')" > np_path.txt
+        NUMPY_CORE=$(cat np_path.txt | grep NUMPY_CORE | cut -d'=' -f2)
+
+        # Create numpy directories
+        mkdir -p dist/executable/lib/numpy/core
+        mkdir -p dist/executable/lib/numpy/random
+
+        # Find and copy all NumPy DLLs
+        python -c "import numpy; import os; import shutil; import glob; numpy_path = os.path.dirname(numpy.__file__); core_dlls = glob.glob(os.path.join(numpy_path, 'core', '*.dll')); [shutil.copy(dll, 'dist/executable/lib/numpy/core/') for dll in core_dlls]; random_dlls = glob.glob(os.path.join(numpy_path, 'random', '*.dll')); [shutil.copy(dll, 'dist/executable/lib/numpy/random/') for dll in random_dlls]"
+
+        # Copy core files
+        python -c "import numpy; import os; import shutil; import glob; numpy_path = os.path.dirname(numpy.__file__); core_pyd = glob.glob(os.path.join(numpy_path, 'core', '*.pyd')); [shutil.copy(pyd, 'dist/executable/lib/numpy/core/') for pyd in core_pyd]"
+
+        # Run cx_Freeze
+        python -m cx_Freeze src/gui/gui_5_0.py --target-dir dist/executable --include-path hooks
+
+        # Download VC++ Redistributable
+        curl -L -o dist/executable/vcredist_x64.exe https://aka.ms/vs/17/release/vc_redist.x64.exe
+
+        # Create installer batch file
+        echo '@echo off' > dist/executable/install.bat
+        echo 'echo Installing Visual C++ Redistributable...' >> dist/executable/install.bat
+        echo 'start /wait vcredist_x64.exe /quiet /norestart' >> dist/executable/install.bat
+        echo 'echo Installation complete!' >> dist/executable/install.bat
+
+        # Copy NumPy core DLLs to ensure they're included
+        cp "$NUMPY_CORE"/*.pyd dist/executable/lib/numpy/core/ || echo "Failed to copy NumPy PYD files"
+        cp "$NUMPY_CORE"/*.dll dist/executable/lib/numpy/core/ || echo "Failed to copy NumPy DLL files"
+      shell: bash
+
+    - name: Build macOS/Linux Executable
+      if: matrix.os != 'windows-latest'
+      run: |
+        python -m cx_Freeze src/gui/gui_5_0.py --target-dir dist/executable --target-name gui_5_0
       shell: bash
 
     - name: Copy additional files
@@ -50,9 +95,66 @@ jobs:
         cp src/model/lenn1.3.keras dist/executable/src/model/
       shell: bash
 
+    - name: Create README instructions
+      if: matrix.os == 'windows-latest'
+      run: |
+        echo "# Loan Eligibility Checker" > dist/executable/README.md
+        echo "" >> dist/executable/README.md
+        echo "## Installation Instructions" >> dist/executable/README.md
+        echo "" >> dist/executable/README.md
+        echo "1. Run \`install.bat\` to install the Visual C++ Redistributable (if not already installed)" >> dist/executable/README.md
+        echo "2. Run \`LoanEligibilityChecker.exe\` to start the application" >> dist/executable/README.md
+      shell: bash
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: LoanChecker-${{ matrix.os }}
         path: dist/executable/*
         if-no-files-found: error
+
+    - name: Test Executable (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd dist/executable
+        # Run with timeout and redirect output to file
+        timeout 10 .\LoanEligibilityChecker.exe > startup_log.txt 2>&1 || echo "Application started and terminated after timeout"
+        # Check for known error strings in the output
+        if (Select-String -Path startup_log.txt -Pattern "ImportError|ModuleNotFoundError|DLL load failed") {
+          echo "::error::Startup errors detected in the executable"
+          cat startup_log.txt
+          exit 1
+        }
+      shell: pwsh
+      continue-on-error: true  # Optional: allows workflow to complete even if test fails
+
+    - name: Test Executable (macOS/Linux)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cd dist/executable
+        # Make executable if needed
+        chmod +x ./gui_5_0
+        # Run with timeout and capture output
+        timeout 10s ./gui_5_0 > startup_log.txt 2>&1 || echo "Application started and terminated after timeout"
+        # Check for errors
+        if grep -q "ImportError\|ModuleNotFoundError" startup_log.txt; then
+          echo "::error::Startup errors detected in the executable"
+          cat startup_log.txt
+          exit 1
+        fi
+      shell: bash
+      continue-on-error: true  # Optional: allows workflow to complete even if test fails
+
+    - name: Set up virtual display (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get install -y xvfb
+        export DISPLAY=:99
+        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+        sleep 3
+
+    - name: Upload Test Logs
+      uses: actions/upload-artifact@v4
+      with:
+        name: TestLogs-${{ matrix.os }}
+        path: dist/executable/startup_log.txt
