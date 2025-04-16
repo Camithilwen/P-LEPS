@@ -25,7 +25,7 @@ def encode_property_area(data):
     return data
 
 # basic data preprocessing, can be better oop and put into a differnt file if needed
-data = pd.read_csv("src/model/dataset.csv")
+data = pd.read_csv("P-LEPS/src/model/dataset.csv")
 data = data.drop(columns=["Loan_ID"])  # drop the Loan_ID column, not needed for training
 
 data = pd.get_dummies(data, drop_first=True) # one-hot encode categorical variables, drop_first=True to avoid dummy variable trap
@@ -36,21 +36,21 @@ data = data.dropna() # drop rows with missing values, can be better to fill with
 #print(data.columns)
 data.rename(columns={"Education_Not Graduate": "Education_Graduate", "ApplicantIncome": "Applicant_Income", "CoapplicantIncome":"Coapplicant_Income", "LoanAmount" : "Loan_Amount"}, inplace=True)
 data = data.drop(["Dependents_1","Dependents_2","Dependents_3+"], axis=1)
-pd.Series(data.columns).to_csv("src/preprocessing/training_columns.csv", index=False, header=False)
+pd.Series(data.columns).to_csv("P-LEPS/src/preprocessing/training_columns.csv", index=False, header=False)
 
 #print(data.head())
 #print(data.shape)   
 
 y = data["Loan_Status_Y"].astype(int) 
 X = data.drop(columns=["Loan_Status_Y"]) # drop the target variable
-pd.Series(X.columns).to_csv("src/preprocessing/training_columns.csv", index=False, header=False)
+pd.Series(X.columns).to_csv("P-LEPS/src/preprocessing/training_columns.csv", index=False, header=False)
 
 scaler = StandardScaler() # standardize the data, mean = 0, std = 1, might use MinMaxScaler() instead
 # scaler = MinMaxScaler() # scale the data to a range, might use StandardScaler() instead
 X = scaler.fit_transform(X)
 
 from joblib import dump
-dump(scaler, "src/preprocessing/scaler.joblib")
+dump(scaler, "P-LEPS/src/preprocessing/scaler.joblib")
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) # 80% training, 20% testing can be changed
 
