@@ -15,3 +15,10 @@ devenv.lock
 # pre-commit
 .pre-commit-config.yaml
 
+# Ignore build artifacts
+build_env/
+build/
+dist/
+*.egg-info/
+*.exe
+*.msi
