@@ -3,26 +3,61 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from joblib import load
 import os
+import sys
+
+def resource_path(relative_path):
+    """Get absolute path to resource for PyInstaller or development."""
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+    
+    # Handle both forward and backward slashes
+    path = os.path.join(base_path, *relative_path.split('/'))
+    
+    # Debugging output
+    print(f"Looking for {relative_path} at: {path}")
+    if not os.path.exists(path):
+        print(f"File not found at {path}")
+        print(f"Contents of {os.path.dirname(path)}: {os.listdir(os.path.dirname(path))}")
+    
+    return path
 
 def preprocess_input(data, strict_validation=True):
     """Replicate preprocessing from model training using saved artifacts."""
     if not isinstance(data, pd.DataFrame):
         raise ValueError("Input must be a pandas DataFrame.")
+    
+    # Debugging output
+    print("\n--- Starting Preprocessing ---")
+    print(f"Current working directory: {os.getcwd()}")
+    if getattr(sys, 'frozen', False):
+        print(f"Running in PyInstaller bundle, MEIPASS: {sys._MEIPASS}")
+    
     # Create copy to prevent modifying original data
     data = data.copy()
 
     # Drop Loan_ID if present
     data = data.drop(columns=["Loan_ID"], errors="ignore")
 
+    # Load training columns with multiple fallback paths
+
     try:
-        # Load training columns with test fallback
-        preprocessing_dir = os.path.join(os.path.dirname(__file__))
-        training_columns = pd.read_csv(os.path.join(preprocessing_dir, 'training_columns.csv'), header=None).squeeze().tolist()
-
+        training_columns = pd.read_csv(resource_path('training_columns.csv'), header=None
+        ).squeeze().str.strip().str.replace(" ", "_").str.title().tolist()
+        print("Successfully loaded training columns")
+        print("Training columns:", training_columns)
     except FileNotFoundError:
-        training_columns = data.columns.tolist()
+        pass
 
-    #Check for and list conversion errors
+    
+    if training_columns is None:
+        error_msg = f"Could not find training_columns.csv at any of:\n" + "\n".join(training_col_path)
+        print(error_msg)
+        raise FileNotFoundError(error_msg)
+
+    # Check for conversion errors
     conversion_errors = []
     for col in data.columns:
         try:
@@ -31,53 +66,53 @@ def preprocess_input(data, strict_validation=True):
             conversion_errors.append(col)
 
     if conversion_errors:
-        raise ValueError(f"Invalid numeric value in columns:{conversion_errors}")
+        raise ValueError(f"Invalid numeric value in columns: {conversion_errors}")
 
-    #strict validation handling - strict flag raises error for missing columns
+    # Strict validation (ensure required columns exist)
     if strict_validation:
         missing_cols = set(training_columns) - set(data.columns)
         if missing_cols:
             raise ValueError(f"Missing required columns: {missing_cols}")
 
-    # Convert all data to numeric types
+    # Convert to numeric types safely
     data = data.apply(pd.to_numeric, errors='coerce')
 
-    # Handle categorical data if present (test-safe implementation)
+    # One-hot encoding for unexpected object columns (failsafe)
     categorical_cols = data.select_dtypes(include=['object', 'category']).columns
-    if not categorical_cols.empty:
+    if len(categorical_cols) > 0:
         data = pd.get_dummies(data, drop_first=True)
 
-    # Column alignment with test-aware handling
+    # Align columns with training structure
     missing_cols = set(training_columns) - set(data.columns)
     extra_cols = set(data.columns) - set(training_columns)
 
-    # Add missing columns with default 0 values
     for col in missing_cols:
         data[col] = 0
-
-    # Remove extra columns not in training set
     data = data[training_columns]
 
-    # Imputation with test-safe numeric handling
+    # Impute missing values
     numeric_cols = data.select_dtypes(include=[np.number]).columns
     data[numeric_cols] = data[numeric_cols].fillna(data[numeric_cols].mean())
 
-    # Diagnostic prints (preserved from original)
+    # Debugging info
     print("\n--- Post Column Alignment ---")
     print("Columns:", data.columns.tolist())
     print("Data Shape:", data.shape)
     print("Data:\n", data.head())
 
-    # Load scaler with test fallback
+    # Load scaler with improved error handling
     try:
-        scaler = load(os.path.join(preprocessing_dir, 'scaler.joblib'))
+        scaler_path = resource_path('scaler.joblib')
+        print(f"Loading scaler from: {scaler_path}")
+        scaler = load(scaler_path)
     except FileNotFoundError:
+        print("Warning: scaler.joblib not found, using dummy StandardScaler for testing.")
         scaler = StandardScaler()
-        scaler.fit(data)  # Dummy fit for testing
+        scaler.fit(data)
 
-    # Validate final structure
-    if data.shape[1] != 10:
-        raise ValueError(f"Expected 10 features, got {data.shape[1]}")
+    # Final structure validation
+    if data.shape[1] != len(training_columns):
+        raise ValueError(f"Expected {len(training_columns)} features, got {data.shape[1]}")
 
     scaled_data = scaler.transform(data)
     return scaled_data, data.index

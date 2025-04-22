@@ -1,0 +1,1 @@
+pyinstaller --onefile --add-data "src/preprocessing/training_columns.csv;." --add-data "src/preprocessing/training_columns.csv:src/preprocessing." --add-data "src/preprocessing/preprocessing.py:src/preprocessing" --add-data "src/preprocessing/scaler.joblib;." --add-data "src/prediction/lenn1.3.keras;." --add-data "src/prediction/prediction.py:src/prediction" src/gui/gui_5_0.py

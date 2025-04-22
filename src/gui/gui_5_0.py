@@ -1,26 +1,50 @@
 # Add this at the top of your src/gui/gui_5_0.py
-import os
 import sys
+import os
 
-# Set DLL search path to help find NumPy dependencies
-if hasattr(os, 'add_dll_directory'):  # Windows specific
-    # Get the directory where the executable is located
+if getattr(sys, 'frozen', False):
+    # Running in a PyInstaller bundle
+    base_path = sys._MEIPASS
+else:
+    # Running in a normal Python environment
+    base_path = os.path.dirname(os.path.abspath(__file__))
+
+# Get the base path for accessing resources
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    # Handle different path styles
+    path = os.path.join(base_path, *relative_path.split('/'))
+    if not os.path.exists(path):
+        # Try alternative path joining
+        path = os.path.normpath(os.path.join(base_path, relative_path))
+    
+    return path
+
+# Set DLL search path to help find NumPy dependencies (Windows only)
+if hasattr(os, 'add_dll_directory'):
     if getattr(sys, 'frozen', False):
         application_path = os.path.dirname(sys.executable)
-        # Add the lib/numpy/core directory to the DLL search path
         numpy_core_path = os.path.join(application_path, 'lib', 'numpy', 'core')
+
         if os.path.exists(numpy_core_path):
             os.add_dll_directory(numpy_core_path)
-        # Also add the main executable directory for MKL DLLs
+
+        # Also add main executable directory (useful for MKL .dlls)
         os.add_dll_directory(application_path)
 
-# Now try to import NumPy
+
 try:
     import numpy
 except ImportError as e:
     import traceback
     # Create an error log if numpy fails to import
-    with open('numpy_error.log', 'w') as f:
+    with open(resource_path('numpy_error.log'), 'w') as f:
         f.write(f"Error importing NumPy: {e}\n")
         f.write(traceback.format_exc())
         f.write("\nPython path: " + str(sys.path))
@@ -125,8 +149,14 @@ class main_page(ctk.CTkFrame):
                 data.drop(columns=["Loan_ID"], inplace=True)
 
             data.columns = data.columns.str.strip().str.replace(" ", "_").str.title()
-            training_cols_path = os.path.join(os.path.dirname(__file__), '../preprocessing/training_columns.csv')
-            required_columns = pd.read_csv(training_cols_path, header=None).squeeze("columns").tolist()
+            try:
+                training_cols_path = resource_path('src/preprocessing/training_columns.csv')
+                print(f"Looking for training columns at: {training_cols_path}")
+                print(f"File exists: {os.path.exists(training_cols_path)}")
+                required_columns = pd.read_csv(training_cols_path, header=None).squeeze("columns").tolist()
+            except Exception as e:
+                print(f"Error loading training columns: {e}")
+                raise
 
 
             print("\n \nModified CSV Columns:\n", data.columns.tolist())
@@ -294,8 +324,14 @@ class manual_entry(ctk.CTkFrame):
 
         #Match entry column order to training columns
         try:
-            training_cols_path = os.path.join(os.path.dirname(__file__), '../preprocessing/training_columns.csv')
-            training_cols = pd.read_csv(training_cols_path, header=None)[0].tolist()
+            try:
+                training_cols_path = resource_path('src/preprocessing/training_columns.csv')
+                print(f"Looking for training columns at: {training_cols_path}")
+                print(f"File exists: {os.path.exists(training_cols_path)}")
+                training_cols = pd.read_csv(training_cols_path, header=None).squeeze("columns").tolist()
+            except Exception as e:
+                print(f"Error loading training columns: {e}")
+                raise
             self.manual_entry_data = self.manual_entry_data[training_cols]
 
             #Ask user to save as new or append to existing
